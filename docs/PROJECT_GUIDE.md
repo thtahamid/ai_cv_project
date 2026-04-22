@@ -89,14 +89,125 @@ ai_cv_project/
 └── runs/           # Ultralytics run logs (gitignored)
 ```
 
-## Environment
+## Environment Setup
+
+Create and register the virtual environment, then run notebooks in numeric order:
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-# .venv\Scripts\Activate.ps1 (Windows)
-pip install "ultralytics==8.3.*" opencv-python pandas matplotlib seaborn scikit-learn pyyaml tqdm pillow ipykernel
+# Windows: .venv\Scripts\Activate.ps1
 
 .venv/Scripts/python -m ipykernel install --user --name=ai_cv_project --display-name "Python (.venv)"
 ```
 
-Run the notebooks in numeric order.
+Each notebook has its own `%pip install` cell at the top scoped to what that stage needs. Details below.
+
+---
+
+## Per-Notebook Dependencies
+
+### Notebook 01 — Data Collection
+
+```python
+%pip install -q pandas pillow pyyaml
+print("nb01 dependencies ready")
+```
+
+| Package | Why |
+|---|---|
+| `pandas` | Tabular summary of available image/label pairs per class |
+| `pillow` | Validate image file integrity before sampling |
+| `pyyaml` | Parse Roboflow `data.yaml` files to discover class names and split paths |
+
+---
+
+### Notebook 02 — Data Annotation & Split
+
+```python
+%pip install -q pandas pillow matplotlib pyyaml
+print("nb02 dependencies ready")
+```
+
+| Package | Why |
+|---|---|
+| `pandas` | Manage per-class split counts and filename tables |
+| `pillow` | Open images for the bounding-box spot-check grid |
+| `matplotlib` | Render annotated bounding box overlays during spot-check |
+| `pyyaml` | Read source `data.yaml` files and write the unified `data.yaml` |
+
+---
+
+### Notebook 03 — Dataset Health Check
+
+```python
+%pip install -q pandas pillow matplotlib seaborn
+print("nb03 dependencies ready")
+```
+
+| Package | Why |
+|---|---|
+| `pandas` | Build per-split class balance tables |
+| `pillow` | Read image dimensions for the size scatter plot |
+| `matplotlib` | Draw bar charts, scatter plots, and distribution histograms |
+| `seaborn` | Styled bar chart for the class balance overview |
+
+---
+
+### Notebook 04 — Model Training
+
+```python
+# Training framework + plotting
+%pip install -q "ultralytics==8.3.*" pandas matplotlib
+print("nb04 base dependencies ready")
+
+# CUDA PyTorch — force-reinstall so the CUDA build always wins over the
+# +cpu wheel that ultralytics pulls from PyPI by default
+%pip install -q --force-reinstall torch torchvision torchaudio \
+    --index-url https://download.pytorch.org/whl/cu126
+print("nb04 CUDA PyTorch ready — restart kernel before running further cells")
+```
+
+| Package | Why |
+|---|---|
+| `ultralytics==8.3.*` | YOLOv11 training, validation, and inference framework |
+| `pandas` | Read `results.csv` to plot loss and mAP curves per epoch |
+| `matplotlib` | Plot box/cls/dfl loss and mAP training curves |
+| `torch` / `torchvision` / `torchaudio` (cu126) | GPU-accelerated tensor ops; the CUDA build is required for RTX 4060 — the default PyPI wheel is CPU-only |
+
+---
+
+### Notebook 05 — Evaluation
+
+```python
+%pip install -q "ultralytics==8.3.*" pandas numpy matplotlib seaborn pillow
+print("nb05 dependencies ready")
+```
+
+| Package | Why |
+|---|---|
+| `ultralytics==8.3.*` | Run `model.val()` and `model.predict()` on the held-out test split |
+| `pandas` | Build metric comparison tables across model variants |
+| `numpy` | Numerical operations on raw metric arrays |
+| `matplotlib` | PR curves, confusion matrix, and prediction image grids |
+| `seaborn` | Styled confusion matrix heatmap |
+| `pillow` | Load test images for the qualitative prediction grid |
+
+---
+
+## Install All Requirements at Once
+
+Use this if you prefer to pre-install everything before opening any notebook.
+After running this, restart your kernel and skip the individual `%pip install` cells.
+
+```bash
+pip install \
+  pandas pillow pyyaml \
+  matplotlib seaborn \
+  numpy \
+  "ultralytics==8.3.*" \
+  torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+
+python -c "import torch; print('CUDA available:', torch.cuda.is_available()); print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'none')"
+```
+
+The final `python -c` line confirms the CUDA build was picked up correctly before you start training.
