@@ -26,7 +26,7 @@ The work is broken into five Jupyter notebooks under `notebooks/`, each owning o
 ## Stage 1 — Aggregate Per-Class Datasets to 200/class
 **Notebook:** `notebooks/01_data_collection.ipynb`
 
-- For each class we've downloaded one or more Roboflow/Kaggle exports under `data/sources/<class>/<dataset>/` (each with `train/valid/test/data.yaml`).
+- For each class we've downloaded one or more Roboflow/Kaggle exports under `datasets/<class>/<dataset_N>/` (each with `train/valid/test/data.yaml`). A class folder may contain **one sub-dataset or several** — the notebook walks whatever is there.
 - Walk every sub-dataset and pool image/label pairs **across all splits**.
 - Randomly sample **200 per class** and write them flat into `data/aggregated/<class>/{images,labels}/`, keeping the original single-class `class_id = 0`.
 - Write `data/aggregated/<class>/info.json` recording which sub-dataset + split each selected file came from.
@@ -79,7 +79,12 @@ ai_cv_project/
 │   ├── 03_data_preprocessing_split.ipynb
 │   ├── 04_model_training.ipynb
 │   └── 05_model_evaluation.ipynb
-├── data/           # sources (raw per-class sub-datasets) → aggregated (200/class) → dataset (split)  [gitignored]
+├── datasets/       # raw per-class Roboflow/Kaggle exports (scaffold tracked, contents gitignored)
+│   ├── projector/<dataset_N>/
+│   ├── whiteboard/<dataset_N>/
+│   ├── fire_extinguisher/<dataset_N>/
+│   └── door_sign/<dataset_N>/
+├── data/           # aggregated (200/class) → dataset (split)  [gitignored]
 ├── weights/        # trained checkpoints (gitignored)
 └── runs/           # Ultralytics run logs (gitignored)
 ```

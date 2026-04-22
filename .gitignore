@@ -9,6 +9,15 @@ __pycache__/
 # venv
 .venv
 
+# Raw per-class sub-datasets (keep the datasets/<class>/ scaffold, ignore the actual exports)
+datasets/*/*/
+
+# Processed data + training artifacts
+data/
+runs/
+weights/
+*.pt
+
 
 # Distribution / packaging
 .Python
