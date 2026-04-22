@@ -94,7 +94,9 @@ ai_cv_project/
 ```bash
 python -m venv .venv && source .venv/bin/activate
 # .venv\Scripts\Activate.ps1 (Windows)
-pip install "ultralytics==8.3.*" opencv-python pandas matplotlib seaborn scikit-learn pyyaml tqdm pillow
+pip install "ultralytics==8.3.*" opencv-python pandas matplotlib seaborn scikit-learn pyyaml tqdm pillow ipykernel
+
+.venv/Scripts/python -m ipykernel install --user --name=ai_cv_project --display-name "Python (.venv)"
 ```
 
 Run the notebooks in numeric order.
