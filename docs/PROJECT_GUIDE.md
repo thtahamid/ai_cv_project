@@ -16,26 +16,28 @@ The work is broken into five Jupyter notebooks under `notebooks/`, each owning o
 ## Pipeline Overview
 
 ```
-[1] Acquisition & Inventory  →  [2] Combine + Remap + Split  →  [3] Health Check
-                                                                       ↓
-                                         [5] Evaluation  ←  [4] Training
+[1] Aggregate per class (200/class)  →  [2] Combine + Remap + Split  →  [3] Health Check
+                                                                                ↓
+                                                  [5] Evaluation  ←  [4] Training
 ```
 
 ---
 
-## Stage 1 — Data Acquisition & Inventory
+## Stage 1 — Aggregate Per-Class Datasets to 200/class
 **Notebook:** `notebooks/01_data_collection.ipynb`
 
-- Download **already-annotated** datasets from Roboflow / Kaggle — one per class — and drop each into its own folder under `data/sources/<class_name>/`.
-- Each source is a single-class YOLO export, so every label inside starts with `class_id = 0`.
-- Inventory the folders, verify image↔label pairing, and peek at each source's `data.yaml` (when present).
+- For each class we've downloaded one or more Roboflow/Kaggle exports under `data/sources/<class>/<dataset>/` (each with `train/valid/test/data.yaml`).
+- Walk every sub-dataset and pool image/label pairs **across all splits**.
+- Randomly sample **200 per class** and write them flat into `data/aggregated/<class>/{images,labels}/`, keeping the original single-class `class_id = 0`.
+- Write `data/aggregated/<class>/info.json` recording which sub-dataset + split each selected file came from.
 
-## Stage 2 — Combine Sources into the Unified Split Dataset
+## Stage 2 — Combine Aggregated Classes into the Unified Split Dataset
 **Notebook:** `notebooks/02_data_annotation.ipynb`
 
-- Walk the four per-class source folders and merge them into `data/dataset/{images,labels}/{train,val,test}/`, **honoring the Roboflow source splits** (`train` → `train`, `valid` → `val`, `test` → `test`). Flat sources fall back to `train`.
-- **Remap** each source's `class_id` from `0` to the global index (`projector=0`, `whiteboard=1`, `fire_extinguisher=2`, `door_sign=3`).
-- Normalize filenames to `<class>_<split>_<n>.jpg`, convert images to RGB JPG.
+- Read `data/aggregated/<class>/` for all four classes.
+- **Stratified 70 / 20 / 10 split** per class → every split contains every class.
+- **Remap** each file's `class_id` from `0` to the global index (`projector=0`, `whiteboard=1`, `fire_extinguisher=2`, `door_sign=3`).
+- Write to `data/dataset/{images,labels}/{train,val,test}/` with filenames `<class>_<split>_<nnnn>.jpg`.
 - Structural validation + visual spot-check + emit `data.yaml` for Ultralytics.
 
 ## Stage 3 — Dataset Health Check
@@ -77,7 +79,7 @@ ai_cv_project/
 │   ├── 03_data_preprocessing_split.ipynb
 │   ├── 04_model_training.ipynb
 │   └── 05_model_evaluation.ipynb
-├── data/           # sources (per-class) → annotated (merged) → dataset (split)  [gitignored]
+├── data/           # sources (raw per-class sub-datasets) → aggregated (200/class) → dataset (split)  [gitignored]
 ├── weights/        # trained checkpoints (gitignored)
 └── runs/           # Ultralytics run logs (gitignored)
 ```
