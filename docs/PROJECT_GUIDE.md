@@ -93,7 +93,7 @@ ai_cv_project/
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install ultralytics==8.3.* opencv-python pandas matplotlib seaborn scikit-learn pyyaml tqdm pillow
+pip install "ultralytics==8.3.*" opencv-python pandas matplotlib seaborn scikit-learn pyyaml tqdm pillow
 ```
 
 Run the notebooks in numeric order.

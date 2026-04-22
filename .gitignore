@@ -9,6 +9,13 @@ __pycache__/
 # venv
 .venv
 
+
+# Files/Folders
+
+datasets
+data
+
+
 # Raw per-class sub-datasets (keep the datasets/<class>/ scaffold, ignore the actual exports)
 datasets/*/*/
 
