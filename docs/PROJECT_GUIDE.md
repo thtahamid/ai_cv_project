@@ -199,15 +199,17 @@ print("nb05 dependencies ready")
 Use this if you prefer to pre-install everything before opening any notebook.
 After running this, restart your kernel and skip the individual `%pip install` cells.
 
+**Step 1 — common packages:**
 ```bash
-pip install \
-  pandas pillow pyyaml \
-  matplotlib seaborn \
-  numpy \
-  "ultralytics==8.3.*" \
-  torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
-
-python -c "import torch; print('CUDA available:', torch.cuda.is_available()); print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'none')"
+pip install -q pandas pillow pyyaml matplotlib seaborn numpy "ultralytics==8.3.*"
 ```
 
-The final `python -c` line confirms the CUDA build was picked up correctly before you start training.
+**Step 2 — CUDA PyTorch (GPU support):**
+```bash
+pip install -q --force-reinstall torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+```
+
+**Step 3 — verify GPU is detected:**
+```bash
+python -c "import torch; print('CUDA available:', torch.cuda.is_available()); print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'none')"
+```
