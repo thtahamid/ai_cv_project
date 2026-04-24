@@ -14,7 +14,7 @@ __pycache__/
 
 datasets
 data
-
+test
 
 # Raw per-class sub-datasets (keep the datasets/<class>/ scaffold, ignore the actual exports)
 datasets/*/*/
