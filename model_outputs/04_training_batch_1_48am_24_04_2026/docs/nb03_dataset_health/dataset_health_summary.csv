@@ -1,0 +1,4 @@
+split,images,empty_labels,boxes,tiny_boxes
+train,560,25,695,0
+val,160,7,200,0
+test,80,3,102,0

@@ -1,0 +1,9 @@
+path: C:\Users\mitah\github_projects\ai_cv_project\data\dataset
+train: images/train
+val: images/val
+test: images/test
+names:
+  0: projector
+  1: whiteboard
+  2: fire_extinguisher
+  3: door_sign

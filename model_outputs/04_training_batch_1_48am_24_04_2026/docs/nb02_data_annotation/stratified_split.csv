@@ -1,0 +1,5 @@
+class,train,val,test
+projector,140,40,20
+whiteboard,140,40,20
+fire_extinguisher,140,40,20
+door_sign,140,40,20

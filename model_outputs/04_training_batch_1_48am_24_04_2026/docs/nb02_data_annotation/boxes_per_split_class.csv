@@ -1,0 +1,13 @@
+split,class,images,boxes
+test,door_sign,20,39
+test,fire_extinguisher,20,23
+test,projector,20,17
+test,whiteboard,20,23
+train,door_sign,140,260
+train,fire_extinguisher,140,167
+train,projector,140,115
+train,whiteboard,140,153
+val,door_sign,40,73
+val,fire_extinguisher,40,52
+val,projector,40,33
+val,whiteboard,40,42

@@ -1,0 +1,54 @@
+{
+  "notebook": "05_model_evaluation.ipynb",
+  "description": "Evaluate the best checkpoint (yolo11n) on the 80-image held-out test split. Val run saved to runs/detect/val.",
+  "outputs": {
+    "overall_metrics.json": "Scalar test-set metrics: mAP@0.5, mAP@0.5:0.95, macro precision and recall.",
+    "per_class_metrics.csv": "Per-class precision/recall/mAP@0.5/mAP@0.5:0.95 for all 4 classes.",
+    "confusion_matrix_custom.png": "Custom dual-panel seaborn confusion matrix: (left) raw counts, (right) column-normalized.",
+    "pr_curve_display.png": "Per-class PR curves displayed inline from the val run directory.",
+    "qualitative_predictions.png": "2x4 grid of 8 random test images with predicted bounding boxes and class labels.",
+    "confusion_matrix.png": "YOLO-generated confusion matrix (raw counts) from val run.",
+    "confusion_matrix_normalized.png": "YOLO-generated column-normalized confusion matrix from val run.",
+    "BoxPR_curve.png": "Per-class precision-recall curves from val run.",
+    "BoxP_curve.png": "Precision vs confidence threshold per class from val run.",
+    "BoxR_curve.png": "Recall vs confidence threshold per class from val run.",
+    "BoxF1_curve.png": "F1 score vs confidence threshold per class from val run.",
+    "variant_comparison.csv": "Model variant comparison (yolo11s/yolo11m rows pending future runs)."
+  },
+  "test_results": {
+    "model": "yolo11n",
+    "params_M": 2.6,
+    "test_images": 80,
+    "test_boxes": 102,
+    "mAP_0.5": 0.9332,
+    "mAP_0.5_0.95": 0.7959,
+    "macro_precision": 1.0,
+    "macro_recall": 0.8613,
+    "per_class": {
+      "projector": {
+        "precision": 1.0,
+        "recall": 0.8036,
+        "mAP50": 0.8964,
+        "mAP50_95": 0.729
+      },
+      "whiteboard": {
+        "precision": 1.0,
+        "recall": 0.7625,
+        "mAP50": 0.8761,
+        "mAP50_95": 0.7767
+      },
+      "fire_extinguisher": {
+        "precision": 1.0,
+        "recall": 0.9565,
+        "mAP50": 0.978,
+        "mAP50_95": 0.9045
+      },
+      "door_sign": {
+        "precision": 1.0,
+        "recall": 0.9224,
+        "mAP50": 0.9822,
+        "mAP50_95": 0.7733
+      }
+    }
+  }
+}

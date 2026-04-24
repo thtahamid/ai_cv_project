@@ -1,0 +1,14 @@
+class,source_dataset,test,train,val
+door_sign,doorsign1,0.0,56.0,0.0
+door_sign,doorsign2,0.0,40.0,0.0
+door_sign,doorsign3,0.0,59.0,0.0
+door_sign,doorsign4,0.0,85.0,0.0
+fire_extinguisher,test,36.0,0.0,0.0
+fire_extinguisher,train,0.0,750.0,0.0
+fire_extinguisher,valid,0.0,0.0,62.0
+projector,Projector2,6.0,39.0,11.0
+projector,Projector3,1.0,170.0,28.0
+projector,projector1,6.0,45.0,13.0
+whiteboard,test,20.0,0.0,0.0
+whiteboard,train,0.0,140.0,0.0
+whiteboard,valid,0.0,0.0,40.0

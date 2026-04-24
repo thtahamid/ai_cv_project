@@ -1,0 +1,4 @@
+split,door_sign,fire_extinguisher,projector,whiteboard
+train,140,140,140,140
+val,40,40,40,40
+test,20,20,20,20

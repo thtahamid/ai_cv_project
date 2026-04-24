@@ -1,0 +1,5 @@
+split,images,labels,rows
+train,560,560,695
+val,160,160,200
+test,80,80,102
+total,800,800,997

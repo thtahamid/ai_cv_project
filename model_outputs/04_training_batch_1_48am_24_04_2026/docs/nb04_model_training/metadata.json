@@ -1,0 +1,28 @@
+{
+  "notebook": "04_model_training.ipynb",
+  "description": "Train YOLOv11n on the unified 800-image dataset for 100 epochs. Model: yolo11n.pt (2.6M params). Device: CUDA GPU.",
+  "outputs": {
+    "training_config.yaml": "Full Ultralytics training configuration (args.yaml) including model, data, epochs, imgsz, batch, lr0, patience, seed.",
+    "training_results.csv": "Per-epoch training metrics: train/val box_loss, cls_loss, dfl_loss, precision, recall, mAP50, mAP50-95 for all 100 epochs.",
+    "training_curves.png": "Two-panel plot: (left) train+val box/cls loss curves; (right) val mAP50 and mAP50-95 over 100 epochs.",
+    "training_summary.json": "Key epoch-level statistics: best epoch, best mAP values, final loss values.",
+    "label_distribution.jpg": "YOLO-generated label distribution visualization showing class frequencies and box location heatmaps.",
+    "sanity_predictions_grid.png": "Inline 1\u00d74 grid of the 4 sanity inference test images with predicted bounding boxes.",
+    "sanity/": "Individual annotated JPEG predictions from quick sanity inference on 4 test images.",
+    "train_batches/": "Mosaic visualizations of training batches (first 3 and last 3) with augmented images and GT labels.",
+    "val_batches/": "Validation batch visualizations: ground-truth labels (labels) and model predictions (pred) side-by-side."
+  },
+  "model": {
+    "architecture": "yolo11n",
+    "params_M": 2.6,
+    "pretrained_weights": "yolo11n.pt",
+    "epochs": 100,
+    "imgsz": 640,
+    "batch": 16,
+    "optimizer": "SGD",
+    "lr0": 0.01,
+    "patience": 15,
+    "seed": 42,
+    "device": "CUDA"
+  }
+}

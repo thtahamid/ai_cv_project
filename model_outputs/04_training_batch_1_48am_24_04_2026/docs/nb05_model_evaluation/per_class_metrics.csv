@@ -1,0 +1,5 @@
+class,precision,recall,mAP@0.5,mAP@0.5:0.95
+projector,1.0,0.8036,0.8964,0.729
+whiteboard,1.0,0.7625,0.8761,0.7767
+fire_extinguisher,1.0,0.9565,0.978,0.9045
+door_sign,1.0,0.9224,0.9822,0.7733

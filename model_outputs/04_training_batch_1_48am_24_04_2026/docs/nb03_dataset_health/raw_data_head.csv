@@ -1,0 +1,6 @@
+,split,file,W,H,class,bx_w,bx_h,bx_area
+0,train,0001_projector.jpg,640,640,projector,0.70625,0.504687,0.356436
+1,train,0003_projector.jpg,4608,2080,,,,
+2,train,0004_projector.jpg,640,640,projector,0.5625,0.703125,0.395508
+3,train,0005_projector.jpg,640,640,projector,0.767188,0.473438,0.363215
+4,train,0006_projector.jpg,640,640,projector,0.51875,0.75,0.389063

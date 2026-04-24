@@ -1,0 +1,4 @@
+variant,params_M,mAP@0.5,mAP@0.5:0.95,latency_ms
+yolo11n,2.6,0.9332,0.7959,
+yolo11s,9.4,,,
+yolo11m,20.0,,,

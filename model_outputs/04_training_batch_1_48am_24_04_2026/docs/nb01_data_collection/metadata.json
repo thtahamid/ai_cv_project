@@ -1,0 +1,14 @@
+{
+  "notebook": "01_data_collection.ipynb",
+  "description": "Aggregate 200 (image, label) pairs per class from raw Roboflow exports into data/aggregated/. Labels keep class_id=0.",
+  "outputs": {
+    "available_pairs.csv": "Available (img, label) pairs found per class before sampling to 200.",
+    "source_split_breakdown.csv": "Pair counts broken down by class, source dataset, and source split \u2014 provenance tracking.",
+    "verification.csv": "Post-run verification confirming 200 images, 200 labels, and info.json per class."
+  },
+  "key_facts": {
+    "target_per_class": 200,
+    "total_images": 800,
+    "seed": 42
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "notebook": "03_data_preprocessing_split.ipynb",
+  "description": "Diagnostic-only health check of data/dataset/. No files modified. Checks class balance, box-size distribution, image dimensions, empty labels, and cross-split leakage.",
+  "outputs": {
+    "raw_data_head.csv": "First 5 rows of the 1032-row box-level DataFrame. One row per bounding box (or per empty image).",
+    "class_distribution.csv": "Images per class per split \u2014 confirms perfect 140/40/20 balance across all classes.",
+    "class_distribution_bar.png": "Bar chart of class distribution across train/val/test splits.",
+    "box_area_histogram.png": "Density histogram of normalized bounding-box areas (w\u00d7h) per class. Shows size distribution by class.",
+    "image_dimensions_scatter.png": "Scatter plot of source image W vs H coloured by split. Most are 640\u00d7640; outliers are large originals.",
+    "image_dim_stats.csv": "Descriptive statistics (count/mean/std/min/max/quartiles) for image width and height.",
+    "dataset_health_summary.csv": "Per-split summary of images, empty label files, total boxes, and tiny boxes (<0.001 normalized area)."
+  },
+  "key_facts": {
+    "total_df_rows": 1032,
+    "total_boxes": 997,
+    "total_images": 800,
+    "empty_label_images": 35,
+    "tiny_boxes": 0,
+    "cross_split_leakage": 0,
+    "tiny_box_threshold": 0.001
+  },
+  "health_checklist": {
+    "every_class_in_every_split": true,
+    "no_class_skew": true,
+    "tiny_boxes_under_5pct": true,
+    "no_cross_split_leakage": true,
+    "dimensions_consistent_with_imgsz640": true
+  }
+}
