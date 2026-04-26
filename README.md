@@ -2,9 +2,15 @@
 
 Detect four campus assets in real time — **projectors, whiteboards, fire extinguishers, and door signs** — using a lightweight YOLOv11n model trained on a curated, class-balanced dataset. Built as a reproducible, notebook-driven pipeline from raw images to a deployable ONNX model.
 
+<div align="center">
+
 ![Cover](docs/cover_page.png)
 
+<br/>
+
 ![Overview](docs/overview_page.png)
+
+</div>
 
 ---
 
