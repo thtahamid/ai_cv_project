@@ -1,25 +1,10 @@
 # Campus Infrastructure Object Detection with YOLOv11n
 
-**Canadian University Dubai** · BCS 407 Artificial Intelligence · Spring 2026  
-Instructor: Dr. Najla Al Futaisi
+Detect four campus assets in real time — **projectors, whiteboards, fire extinguishers, and door signs** — using a lightweight YOLOv11n model trained on a curated, class-balanced dataset. Built as a reproducible, notebook-driven pipeline from raw images to a deployable ONNX model.
 
-End-to-end YOLOv11n pipeline detecting **projectors, whiteboards, fire extinguishers, and door signs** across campus — 800 balanced images, 100 epochs on CUDA RTX 4060.
+![Cover](docs/cover_page.png)
 
-| mAP@0.5 | mAP@0.5:0.95 | Precision | Recall |
-|---------|-------------|-----------|--------|
-| 93.32% | 79.59% | 1.000 | 86.13% |
-
----
-
-## Group Members
-
-| Name | ID |
-|------|----|
-| Tahamid Hossain | 20220001801 |
-| Sumaid Bin Omar | 20220001454 |
-| Parth Aggarwal | 20220001200 |
-| Rufaid Bin Omar | 20230002171 |
-| Arham Bin Azad | 20220001121 |
+![Overview](docs/overview_page.png)
 
 ---
 
