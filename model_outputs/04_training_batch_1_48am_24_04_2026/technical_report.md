@@ -46,7 +46,7 @@ Raw Roboflow/Kaggle exports
 
 ### 2.1 Data Collection — NB01
 
-Raw images were sourced from separate Roboflow and Kaggle dataset exports, stored under `datasets/<class>/`. NB01 aggregated exactly 200 (image, label) pairs per class into `data/aggregated/<class>/`, re-encoding all images to JPEG for uniformity.
+Raw images were sourced from Roboflow and Kaggle exports, with the exception of door_sign sub-datasets doorsign2–4, which were custom-captured from HUB campus door signs, annotated, and prepared by the team. All sources are stored under `datasets/<class>/`. NB01 aggregated exactly 200 (image, label) pairs per class into `data/aggregated/<class>/`, re-encoding all images to JPEG for uniformity.
 
 **Source availability before capping to 200:**
 
@@ -55,16 +55,16 @@ Raw images were sourced from separate Roboflow and Kaggle dataset exports, store
 | projector | 319 | Projector1, Projector2, Projector3 (Roboflow) |
 | whiteboard | 200 | Single Roboflow export (all used) |
 | fire\_extinguisher | 848 | Kaggle export with train/valid/test sub-splits |
-| door\_sign | 240 | doorsign1–doorsign4 (Roboflow) |
+| door\_sign | 240 | doorsign1 (Roboflow); doorsign2–4 (custom — HUB campus door signs, annotated and prepared by the team) |
 
 **Source provenance by sub-dataset and original split** (`source_split_breakdown.csv`):
 
 | Class | Source | Train | Val | Test |
 |---|---|---|---|---|
-| door\_sign | doorsign1 | 56 | 0 | 0 |
-| door\_sign | doorsign2 | 40 | 0 | 0 |
-| door\_sign | doorsign3 | 59 | 0 | 0 |
-| door\_sign | doorsign4 | 85 | 0 | 0 |
+| door\_sign | doorsign1 (Roboflow) | 56 | 0 | 0 |
+| door\_sign | doorsign2 (custom — HUB campus) | 40 | 0 | 0 |
+| door\_sign | doorsign3 (custom — HUB campus) | 59 | 0 | 0 |
+| door\_sign | doorsign4 (custom — HUB campus) | 85 | 0 | 0 |
 | fire\_extinguisher | train | 750 | 0 | 0 |
 | fire\_extinguisher | valid | 0 | 62 | 0 |
 | fire\_extinguisher | test | 0 | 0 | 36 |

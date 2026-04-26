@@ -1080,7 +1080,7 @@ tbody td:first-child { color: var(--text1); font-weight: 500; }
   </div>
   <div class="collapse-body open">
     <div class="collapse-inner">
-      <p>Raw images sourced from separate Roboflow and Kaggle exports. NB01 aggregated exactly <strong>200 (image, label) pairs per class</strong> into <code>data/aggregated/&lt;class&gt;/</code>, re-encoding all images to JPEG.</p>
+      <p>Raw images sourced from Roboflow and Kaggle exports — except <strong>doorsign2–4</strong>, which were custom-captured from HUB campus door signs, annotated, and prepared by the team. NB01 aggregated exactly <strong>200 (image, label) pairs per class</strong> into <code>data/aggregated/&lt;class&gt;/</code>, re-encoding all images to JPEG.</p>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Class</th><th>Available Pairs</th><th>After Cap</th><th>Source</th></tr></thead>
@@ -1088,7 +1088,7 @@ tbody td:first-child { color: var(--text1); font-weight: 500; }
             <tr><td><span style="color:var(--projector)">●</span> projector</td><td>319</td><td>200</td><td>Projector1, 2, 3 (Roboflow)</td></tr>
             <tr><td><span style="color:var(--whiteboard)">●</span> whiteboard</td><td>200</td><td>200</td><td>Single Roboflow export</td></tr>
             <tr><td><span style="color:var(--fire)">●</span> fire_extinguisher</td><td>848</td><td>200</td><td>Kaggle train/valid/test</td></tr>
-            <tr><td><span style="color:var(--door)">●</span> door_sign</td><td>240</td><td>200</td><td>doorsign1–4 (Roboflow)</td></tr>
+            <tr><td><span style="color:var(--door)">●</span> door_sign</td><td>240</td><td>200</td><td>doorsign1 (Roboflow); doorsign2–4 (custom — HUB campus, annotated by team)</td></tr>
           </tbody>
         </table>
       </div>
