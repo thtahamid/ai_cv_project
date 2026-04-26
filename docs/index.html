@@ -354,7 +354,6 @@ tbody td:first-child { color: var(--text1); font-weight: 500; }
 
 /* ─── HERO ─── */
 #hero {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -370,7 +369,7 @@ tbody td:first-child { color: var(--text1); font-weight: 500; }
   margin-bottom: 28px;
 }
 .hero-title {
-  font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+  font-size: clamp(1rem, 2vw, 1.6rem);
   font-weight: 700;
   letter-spacing: -.04em;
   margin-bottom: 24px;
@@ -891,6 +890,194 @@ tbody td:first-child { color: var(--text1); font-weight: 500; }
   top: -100px; right: -100px;
   pointer-events: none;
 }
+
+/* ─── COVER PAGE ─── */
+#cover {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 80px 0 60px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  position: relative;
+}
+.cover-uni-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.cover-uni-emblem {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--border2);
+  background: rgba(59,130,246,.1);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Fira Code', monospace;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--primary);
+  flex-shrink: 0;
+  letter-spacing: .04em;
+}
+.cover-uni-text { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.cover-uni-text > .badge { font-size: 1rem; padding: 6px 16px; }
+.cover-uni-sub { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.cover-uni-name {
+  font-family: 'Fira Code', monospace;
+  font-size: clamp(1rem, 1.4vw, 1.3rem);
+  font-weight: 700;
+  color: var(--red);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.cover-uni-dept {
+  font-size: clamp(.7rem, .85vw, .8rem);
+  color: var(--text3);
+  letter-spacing: .03em;
+}
+.cover-uni-instructor {
+  color: var(--green);
+  font-weight: 500;
+}
+
+.cover-divider {
+  height: 1px;
+  background: linear-gradient(90deg, var(--primary), var(--cyan), transparent);
+  margin-bottom: 16px;
+  opacity: .5;
+}
+
+.cover-course-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.cover-title {
+  font-family: 'Fira Code', monospace;
+  font-size: clamp(1.4rem, 3vw, 3.2rem);
+  font-weight: 700;
+  letter-spacing: -.04em;
+  line-height: 1.15;
+  color: var(--text1);
+  width: 100%;
+  margin-bottom: 28px;
+}
+.cover-title .title-blue { color: var(--primary); }
+.cover-title .title-cyan { color: var(--cyan); }
+
+.cover-subtitle {
+  font-size: .95rem;
+  color: var(--text2);
+  margin-bottom: 56px;
+  line-height: 1.6;
+}
+
+.cover-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+@media(max-width:600px) { .cover-meta-grid { grid-template-columns: 1fr; } }
+
+.cover-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+.cover-panel-label {
+  font-family: 'Fira Code', monospace;
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cover-panel-label::before {
+  content: '';
+  display: inline-block;
+  width: 16px; height: 2px;
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+.cover-instructor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cover-instructor-avatar {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  background: rgba(59,130,246,.12);
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Fira Code', monospace;
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.cover-instructor-name {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--text1);
+}
+.cover-instructor-role {
+  font-size: .78rem;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+.cover-member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cover-member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--surface2);
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: border-color var(--transition);
+}
+.cover-member:hover { border-color: var(--border); }
+.cover-member-name {
+  font-size: .84rem;
+  color: var(--text1);
+  font-weight: 500;
+}
+.cover-member-id {
+  font-family: 'Fira Code', monospace;
+  font-size: .75rem;
+  color: var(--text3);
+  letter-spacing: .04em;
+  flex-shrink: 0;
+}
+
+.cover-bottom-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 48px;
+  flex-wrap: wrap;
+}
 </style>
 </head>
 <body>
@@ -903,7 +1090,10 @@ tbody td:first-child { color: var(--text1); font-weight: 500; }
 <!-- ─── SIDEBAR ─── -->
 <nav class="sidenav" id="sidenav">
   <div class="sidenav-logo">// YOLOv11n Report</div>
-  <a class="nav-item active" href="#hero" data-section="hero">
+  <a class="nav-item active" href="#cover" data-section="cover">
+    <span class="nav-dot"></span>Cover
+  </a>
+  <a class="nav-item" href="#hero" data-section="hero">
     <span class="nav-dot"></span>Overview
   </a>
   <a class="nav-item" href="#pipeline" data-section="pipeline">
@@ -936,6 +1126,73 @@ tbody td:first-child { color: var(--text1); font-weight: 500; }
 <main class="main">
 
 <!-- ══════════════════════════════
+     COVER
+══════════════════════════════ -->
+<section id="cover" class="section">
+
+  <!-- University bar -->
+  <div class="cover-uni-bar reveal">
+    <div class="cover-uni-text">
+      <span class="badge red">Canadian University Dubai</span>
+      <div class="cover-uni-sub">
+        <div class="cover-uni-dept">School of Engineering, Applied Science and Technology</div>
+        <span class="badge green">Instructor: Dr. Najla Al Futaisi</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="cover-divider reveal reveal-delay-1"></div>
+
+  <!-- Course badges -->
+  <div class="cover-course-row reveal reveal-delay-1">
+    <span class="badge">BCS 407</span>
+    <span class="badge cyan">Artificial Intelligence</span>
+    <span class="badge amber">Spring 2026</span>
+  </div>
+
+  <!-- Project title -->
+  <h1 class="cover-title reveal reveal-delay-2">
+    Campus Infrastructure<br>
+    <span class="title-blue">Object Detection</span><br>
+    with <span class="title-cyan">YOLOv11n</span>
+  </h1>
+
+  <!-- Members -->
+  <div class="cover-meta-grid reveal reveal-delay-4" style="grid-template-columns:1fr; max-width:500px; width:100%;">
+
+    <!-- Group members panel -->
+    <div class="cover-panel">
+      <div class="cover-panel-label">Group Members</div>
+      <div class="cover-member-list">
+        <div class="cover-member">
+          <span class="cover-member-name">Tahamid Hossain</span>
+          <span class="cover-member-id">20220001801</span>
+        </div>
+        <div class="cover-member">
+          <span class="cover-member-name">Sumaid Bin Omar</span>
+          <span class="cover-member-id">20220001454</span>
+        </div>
+        <div class="cover-member">
+          <span class="cover-member-name">Parth Aggarwal</span>
+          <span class="cover-member-id">20220001200</span>
+        </div>
+        <div class="cover-member">
+          <span class="cover-member-name">Rufaid Bin Omar</span>
+          <span class="cover-member-id">20230002171</span>
+        </div>
+        <div class="cover-member">
+          <span class="cover-member-name">Arham Bin Azad</span>
+          <span class="cover-member-id">20220001121</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+</section>
+
+<!-- ══════════════════════════════
      HERO
 ══════════════════════════════ -->
 <section id="hero" class="section">
@@ -956,12 +1213,11 @@ tbody td:first-child { color: var(--text1); font-weight: 500; }
     End-to-end pipeline for detecting four campus assets — <strong>projectors, whiteboards, fire extinguishers,</strong> and <strong>door signs</strong> — using a curated 800-image dataset with perfect class balance, achieving near-saturating accuracy on safety-critical classes.
   </p>
 
-  <div class="metric-grid reveal reveal-delay-2">
+  <div class="metric-grid reveal reveal-delay-2" style="grid-template-columns: repeat(4, 1fr);">
     <div class="metric-card">
       <div class="metric-value"><span class="counter" data-target="93.32" data-decimals="2">0</span>%</div>
       <div class="metric-label">mAP@0.5</div>
       <div class="metric-sub">Test set · 80 images</div>
-      <div class="metric-card::before"></div>
     </div>
     <div class="metric-card cyan-accent">
       <div class="metric-value"><span class="counter" data-target="79.59" data-decimals="2">0</span>%</div>
@@ -978,23 +1234,6 @@ tbody td:first-child { color: var(--text1); font-weight: 500; }
       <div class="metric-label">Recall</div>
       <div class="metric-sub">Macro average</div>
     </div>
-    <div class="metric-card">
-      <div class="metric-value"><span class="counter" data-target="800" data-decimals="0">0</span></div>
-      <div class="metric-label">Training Images</div>
-      <div class="metric-sub">4 classes · perfect balance</div>
-    </div>
-    <div class="metric-card cyan-accent">
-      <div class="metric-value">Ep.<span class="counter" data-target="60" data-decimals="0">0</span></div>
-      <div class="metric-label">Best Epoch</div>
-      <div class="metric-sub">Val mAP 94.89%</div>
-    </div>
-  </div>
-
-  <div style="display:flex;gap:8px;flex-wrap:wrap;" class="reveal reveal-delay-3">
-    <span class="badge green">projector · 89.6% mAP</span>
-    <span class="badge cyan">whiteboard · 87.6% mAP</span>
-    <span class="badge red">fire extinguisher · 97.8% mAP</span>
-    <span class="badge">door sign · 98.2% mAP</span>
   </div>
 </section>
 
@@ -1080,7 +1319,7 @@ tbody td:first-child { color: var(--text1); font-weight: 500; }
   </div>
   <div class="collapse-body open">
     <div class="collapse-inner">
-      <p>Raw images sourced from Roboflow and Kaggle exports — except <strong>doorsign2–4</strong>, which were custom-captured from HUB campus door signs, annotated, and prepared by the team. NB01 aggregated exactly <strong>200 (image, label) pairs per class</strong> into <code>data/aggregated/&lt;class&gt;/</code>, re-encoding all images to JPEG.</p>
+      <p>Raw images sourced from Roboflow, except <strong>doorsign2–4</strong>, which were custom-captured from HUB campus door signs, annotated, and prepared by the team. NB01 aggregated exactly <strong>200 (image, label) pairs per class</strong> into <code>data/aggregated/&lt;class&gt;/</code>, re-encoding all images to JPEG.</p>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Class</th><th>Available Pairs</th><th>After Cap</th><th>Source</th></tr></thead>
