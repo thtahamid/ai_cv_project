@@ -1,0 +1,1048 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="dark light" />
+<meta name="description" content="Comparative analysis between Batch 04 and Batch 05 of the campus infrastructure object detector trained on an updated custom dataset." />
+<title>Batch 04 vs Batch 05 · Campus Object Detection Report</title>
+<style>
+  /* ---------- Design tokens ---------- */
+  :root {
+    /* Spacing — 4/8 system */
+    --s-1: 4px;
+    --s-2: 8px;
+    --s-3: 12px;
+    --s-4: 16px;
+    --s-5: 20px;
+    --s-6: 24px;
+    --s-8: 32px;
+    --s-10: 40px;
+    --s-12: 48px;
+    --s-16: 64px;
+    --s-20: 80px;
+
+    /* Radii */
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 16px;
+    --r-xl: 20px;
+    --r-pill: 999px;
+
+    /* Type scale */
+    --fs-12: 12px;
+    --fs-13: 13px;
+    --fs-14: 14px;
+    --fs-15: 15px;
+    --fs-16: 16px;
+    --fs-18: 18px;
+    --fs-22: 22px;
+    --fs-28: 28px;
+    --fs-36: 36px;
+    --fs-48: 48px;
+
+    /* Surfaces — dark base */
+    --bg-0: #060912;
+    --bg-1: #0c1224;
+    --bg-2: #131a33;
+    --bg-3: #1a2245;
+    --line: rgba(255,255,255,0.08);
+    --line-strong: rgba(255,255,255,0.14);
+
+    /* Ink */
+    --ink-1: #f0f3ff;
+    --ink-2: #c5cce6;
+    --ink-3: #8b93b8;
+    --ink-4: #5b6489;
+
+    /* Batch identity — cool indigo vs warm amber */
+    --b04: #6aa7ff;
+    --b04-bg: rgba(106,167,255,0.10);
+    --b04-bd: rgba(106,167,255,0.32);
+    --b04-glow: rgba(106,167,255,0.22);
+
+    --b05: #ffb454;
+    --b05-bg: rgba(255,180,84,0.10);
+    --b05-bd: rgba(255,180,84,0.34);
+    --b05-glow: rgba(255,180,84,0.22);
+
+    /* Semantic */
+    --good: #4ade80;
+    --good-bg: rgba(74,222,128,0.10);
+    --bad: #f87171;
+    --bad-bg: rgba(248,113,113,0.10);
+    --neutral: var(--ink-3);
+
+    /* Effects */
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.25);
+    --shadow-md: 0 8px 24px rgba(0,0,0,0.32);
+    --shadow-lg: 0 24px 64px rgba(0,0,0,0.45);
+
+    /* Easing */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+    --container: 1160px;
+    --rail: 240px;
+  }
+
+  /* ---------- Reset & base ---------- */
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: var(--s-16); }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(900px 540px at 90% -8%, rgba(255,180,84,0.10), transparent 60%),
+      radial-gradient(900px 540px at -10% 10%, rgba(106,167,255,0.10), transparent 60%),
+      linear-gradient(180deg, var(--bg-0) 0%, #04060f 100%);
+    color: var(--ink-1);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: var(--fs-16);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    min-height: 100dvh;
+  }
+  img { max-width: 100%; height: auto; display: block; }
+  a { color: var(--b04); text-decoration: none; transition: color .2s var(--ease-out); }
+  a:hover { color: var(--b05); }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--b05);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+  ::selection { background: var(--b05-bg); color: var(--ink-1); }
+
+  /* Skip link */
+  .skip {
+    position: absolute; left: 8px; top: -40px;
+    background: var(--bg-3); color: var(--ink-1);
+    padding: var(--s-2) var(--s-3); border-radius: var(--r-sm);
+    z-index: 1000; transition: top .2s var(--ease-out);
+  }
+  .skip:focus { top: 8px; }
+
+  /* Scroll progress */
+  .progress {
+    position: fixed; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--b04), var(--b05));
+    transform-origin: 0 50%;
+    transform: scaleX(var(--p, 0));
+    z-index: 200;
+    transition: transform .08s linear;
+  }
+
+  /* ---------- Layout ---------- */
+  .shell {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: var(--s-12) var(--s-6) var(--s-20);
+  }
+
+  /* ---------- Cover / hero ---------- */
+  .hero {
+    position: relative;
+    padding: var(--s-12);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    background:
+      radial-gradient(600px 280px at 92% 0%, var(--b05-bg), transparent 70%),
+      radial-gradient(560px 260px at 0% 100%, var(--b04-bg), transparent 70%),
+      linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+    overflow: hidden;
+  }
+  .hero::before {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: radial-gradient(600px 400px at 50% 0%, #000, transparent 70%);
+    pointer-events: none;
+  }
+  .hero > * { position: relative; }
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: var(--s-2);
+    padding: var(--s-1) var(--s-3);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-pill);
+    font-size: var(--fs-12);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+  .hero-tag::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--b05);
+    box-shadow: 0 0 12px var(--b05-glow);
+    animation: pulse 2.2s var(--ease-in-out) infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.55; transform: scale(0.92); }
+  }
+  .hero h1 {
+    font-size: clamp(28px, 5.4vw, 52px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+    margin: var(--s-4) 0 var(--s-3);
+  }
+  .hero h1 .b04 { color: var(--b04); }
+  .hero h1 .b05 { color: var(--b05); }
+  .hero h1 .vs {
+    display: inline-block;
+    margin: 0 var(--s-2);
+    font-style: italic;
+    color: var(--ink-3);
+    font-weight: 500;
+  }
+  .hero p.lede {
+    color: var(--ink-2);
+    font-size: clamp(15px, 1.4vw, 17px);
+    max-width: 70ch;
+    margin: 0 0 var(--s-8);
+  }
+  .meta {
+    display: grid;
+    gap: var(--s-3);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+  .meta-card {
+    padding: var(--s-4) var(--s-5);
+    background: rgba(255,255,255,0.025);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    transition: transform .25s var(--ease-out), border-color .25s var(--ease-out);
+  }
+  .meta-card:hover { transform: translateY(-2px); border-color: var(--line-strong); }
+  .meta-card .k { color: var(--ink-3); font-size: var(--fs-12); text-transform: uppercase; letter-spacing: 0.08em; }
+  .meta-card .v { color: var(--ink-1); font-size: var(--fs-15); margin-top: var(--s-1); font-weight: 500; }
+
+  /* ---------- TOC sidebar ---------- */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--s-8);
+    margin-top: var(--s-12);
+  }
+  @media (min-width: 1024px) {
+    .layout { grid-template-columns: var(--rail) minmax(0, 1fr); gap: var(--s-10); }
+  }
+  .toc {
+    position: sticky;
+    top: var(--s-6);
+    align-self: start;
+    padding: var(--s-5);
+    background: rgba(255,255,255,0.025);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    max-height: calc(100dvh - var(--s-12));
+    overflow: auto;
+  }
+  .toc h3 {
+    font-size: var(--fs-12);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    margin: 0 0 var(--s-3);
+    font-weight: 600;
+  }
+  .toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+  .toc li { counter-increment: toc; }
+  .toc a {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    padding: var(--s-2) var(--s-3);
+    margin: var(--s-1) calc(var(--s-3) * -1);
+    border-radius: var(--r-sm);
+    color: var(--ink-2);
+    font-size: var(--fs-14);
+    line-height: 1.4;
+    transition: background .2s var(--ease-out), color .2s var(--ease-out);
+    min-height: 36px;
+  }
+  .toc a::before {
+    content: counter(toc, decimal-leading-zero);
+    color: var(--ink-4);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--fs-12);
+    min-width: 22px;
+  }
+  .toc a:hover { background: rgba(255,255,255,0.04); color: var(--ink-1); }
+  .toc a.active {
+    background: linear-gradient(90deg, var(--b05-bg), transparent);
+    color: var(--b05);
+    border-left: 2px solid var(--b05);
+    margin-left: calc(var(--s-3) * -1 - 2px);
+  }
+  @media (max-width: 1023px) {
+    .toc { position: static; max-height: none; }
+  }
+
+  /* ---------- Content sections ---------- */
+  main { min-width: 0; }
+  section { scroll-margin-top: var(--s-16); margin-bottom: var(--s-16); }
+  section > *:first-child { margin-top: 0; }
+
+  h2 {
+    font-size: clamp(22px, 2.6vw, 30px);
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    font-weight: 700;
+    margin: var(--s-12) 0 var(--s-4);
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-3);
+  }
+  h2 .num {
+    color: var(--b05);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.7em;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  h3 {
+    font-size: var(--fs-18);
+    margin: var(--s-8) 0 var(--s-3);
+    color: var(--ink-1);
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+  p { margin: 0 0 var(--s-4); color: var(--ink-2); max-width: 75ch; }
+  ul, ol { margin: 0 0 var(--s-4); padding-left: var(--s-5); color: var(--ink-2); }
+  li + li { margin-top: var(--s-2); }
+  strong { color: var(--ink-1); font-weight: 600; }
+  em { font-style: italic; color: var(--ink-2); }
+
+  code {
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.88em;
+    background: rgba(255,255,255,0.06);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--ink-1);
+  }
+  pre {
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: var(--s-5);
+    overflow-x: auto;
+    font-size: var(--fs-13);
+    color: var(--ink-2);
+    line-height: 1.6;
+  }
+  pre code { background: transparent; padding: 0; color: inherit; }
+
+  /* ---------- KPI strip ---------- */
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--s-4);
+    margin: var(--s-6) 0 var(--s-4);
+  }
+  .kpi {
+    position: relative;
+    padding: var(--s-5) var(--s-5) var(--s-4);
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0));
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    transition: transform .25s var(--ease-out), border-color .25s var(--ease-out), box-shadow .25s var(--ease-out);
+  }
+  .kpi::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--b04), var(--b05));
+    opacity: 0.85;
+  }
+  .kpi:hover {
+    transform: translateY(-3px);
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow-md);
+  }
+  .kpi .label {
+    color: var(--ink-3);
+    font-size: var(--fs-12);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+  .kpi .value {
+    font-size: var(--fs-36);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    margin: var(--s-2) 0 var(--s-1);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .kpi .delta { font-size: var(--fs-13); font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; gap: var(--s-1); }
+  .delta-up { color: var(--good); }
+  .delta-down { color: var(--bad); }
+  .delta-flat { color: var(--ink-3); }
+
+  /* ---------- Tables ---------- */
+  .table-wrap {
+    margin: var(--s-4) 0 var(--s-6);
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: var(--fs-14);
+    min-width: 480px;
+  }
+  th, td {
+    padding: var(--s-3) var(--s-4);
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  th {
+    background: rgba(255,255,255,0.03);
+    color: var(--ink-3);
+    font-weight: 600;
+    font-size: var(--fs-12);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  tbody tr { transition: background .15s var(--ease-out); }
+  tbody tr:hover { background: rgba(255,255,255,0.025); }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .delta-pos { color: var(--good); font-weight: 600; }
+  .delta-neg { color: var(--bad); font-weight: 600; }
+  .delta-zero { color: var(--ink-3); }
+
+  /* Tinted row groups for per-class table */
+  td.row-group { font-weight: 600; }
+
+  /* ---------- Figure grid (B04 vs B05) ---------- */
+  .fig-pair {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--s-4);
+    margin: var(--s-4) 0 var(--s-8);
+  }
+  @media (min-width: 720px) {
+    .fig-pair { grid-template-columns: 1fr 1fr; gap: var(--s-5); }
+  }
+  .fig {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform .3s var(--ease-out), border-color .3s var(--ease-out), box-shadow .3s var(--ease-out);
+    position: relative;
+  }
+  .fig.b04 { border-top: 3px solid var(--b04); }
+  .fig.b05 { border-top: 3px solid var(--b05); }
+  .fig:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+  .fig.b04:hover { border-color: var(--b04-bd); box-shadow: 0 16px 40px var(--b04-glow); }
+  .fig.b05:hover { border-color: var(--b05-bd); box-shadow: 0 16px 40px var(--b05-glow); }
+  .fig-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+    padding: var(--s-3) var(--s-4);
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid var(--line);
+  }
+  .fig-title {
+    font-size: var(--fs-12);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
+    padding: 3px 10px;
+    border-radius: var(--r-pill);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+  .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; }
+  .pill.b04 { background: var(--b04-bg); color: var(--b04); border: 1px solid var(--b04-bd); }
+  .pill.b04::before { background: var(--b04); box-shadow: 0 0 8px var(--b04-glow); }
+  .pill.b05 { background: var(--b05-bg); color: var(--b05); border: 1px solid var(--b05-bd); }
+  .pill.b05::before { background: var(--b05); box-shadow: 0 0 8px var(--b05-glow); }
+  .fig img {
+    width: 100%;
+    height: auto;
+    background: #000;
+    transition: transform .5s var(--ease-out);
+  }
+  .fig:hover img { transform: scale(1.015); }
+
+  /* ---------- Callouts ---------- */
+  .callout {
+    margin: var(--s-4) 0 var(--s-6);
+    padding: var(--s-4) var(--s-5);
+    background: linear-gradient(135deg, var(--b05-bg), transparent 80%);
+    border: 1px solid var(--b05-bd);
+    border-left: 3px solid var(--b05);
+    border-radius: var(--r-md);
+    color: var(--ink-2);
+    font-size: var(--fs-14);
+  }
+  .callout strong { color: var(--ink-1); }
+  .callout.cool {
+    background: linear-gradient(135deg, var(--b04-bg), transparent 80%);
+    border-color: var(--b04-bd);
+    border-left-color: var(--b04);
+  }
+
+  /* ---------- Chips ---------- */
+  .chips { display: flex; gap: var(--s-2); flex-wrap: wrap; margin: var(--s-3) 0 var(--s-4); }
+  .chip {
+    padding: var(--s-1) var(--s-3);
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.03);
+    border-radius: var(--r-pill);
+    font-size: var(--fs-13);
+    color: var(--ink-2);
+  }
+  .chip strong { color: var(--ink-1); }
+  .chip.b04 { border-color: var(--b04-bd); background: var(--b04-bg); }
+  .chip.b04 strong { color: var(--b04); }
+  .chip.b05 { border-color: var(--b05-bd); background: var(--b05-bg); }
+  .chip.b05 strong { color: var(--b05); }
+
+  /* ---------- Divider ---------- */
+  hr.sep {
+    border: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--line-strong), transparent);
+    margin: var(--s-12) 0;
+  }
+
+  /* ---------- Footer ---------- */
+  .foot {
+    margin-top: var(--s-12);
+    padding-top: var(--s-6);
+    border-top: 1px solid var(--line);
+    color: var(--ink-3);
+    font-size: var(--fs-13);
+  }
+  .foot strong { color: var(--ink-2); }
+
+  /* ---------- Subtle entrance ---------- */
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s var(--ease-out), transform .6s var(--ease-out); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* ---------- Reduced motion ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
+
+  /* ---------- Small screens polish ---------- */
+  @media (max-width: 640px) {
+    .shell { padding: var(--s-6) var(--s-4) var(--s-16); }
+    .hero { padding: var(--s-6); }
+    .kpi .value { font-size: var(--fs-28); }
+    h2 { margin-top: var(--s-10); }
+    th, td { padding: var(--s-3); }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<div class="shell">
+
+  <header class="hero reveal">
+    <span class="hero-tag">Comparative Analysis · 12 May 2026</span>
+    <h1>Batch <span class="b04">04</span><span class="vs">vs</span>Batch <span class="b05">05</span></h1>
+    <p class="lede">A hyperparameter-controlled comparison of two YOLOv11n training runs for the campus infrastructure detector. Only the training dataset changed between runs — Batch 05 was retrained on an updated, rebalanced custom dataset.</p>
+    <div class="meta">
+      <div class="meta-card"><div class="k">Backbone</div><div class="v">YOLOv11n · 2.6M</div></div>
+      <div class="meta-card"><div class="k">Input</div><div class="v">640 × 640 RGB</div></div>
+      <div class="meta-card"><div class="k">Classes</div><div class="v">4 — projector · whiteboard · fire ext · door sign</div></div>
+      <div class="meta-card"><div class="k">Hardware</div><div class="v">CUDA · RTX 4060</div></div>
+      <div class="meta-card"><div class="k">Seed</div><div class="v">42 · deterministic</div></div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <aside class="toc" aria-label="Table of contents">
+      <h3>Contents</h3>
+      <ol>
+        <li><a href="#abstract">Abstract</a></li>
+        <li><a href="#setup">Experimental setup</a></li>
+        <li><a href="#dataset">Dataset comparison</a></li>
+        <li><a href="#training">Training dynamics</a></li>
+        <li><a href="#eval">Test evaluation</a></li>
+        <li><a href="#discussion">Discussion</a></li>
+        <li><a href="#conclusion">Conclusion</a></li>
+      </ol>
+    </aside>
+
+    <main id="main">
+
+      <section id="abstract" class="reveal">
+        <h2><span class="num">00</span>Abstract</h2>
+        <p>This report contrasts two consecutive training runs of the campus infrastructure detector (<code>projector</code>, <code>whiteboard</code>, <code>fire_extinguisher</code>, <code>door_sign</code>). Both runs share the same backbone (YOLOv11n, 2.6M params), input size (640 × 640), optimiser (SGD), schedule (100 epochs, patience 15), and seed (42). The only material variable is the <strong>training corpus</strong>: Batch 05 was retrained on an updated custom dataset with more balanced per-class sourcing, a larger share of in-house door-sign captures, and richer multi-instance scenes.</p>
+
+        <div class="kpis" role="list" aria-label="Headline metrics">
+          <div class="kpi" role="listitem">
+            <div class="label">Test mAP@0.5</div>
+            <div class="value">0.9876</div>
+            <div class="delta delta-up">▲ +0.0544 vs 0.9332</div>
+          </div>
+          <div class="kpi" role="listitem">
+            <div class="label">Test mAP@0.5:0.95</div>
+            <div class="value">0.8728</div>
+            <div class="delta delta-up">▲ +0.0769 vs 0.7959</div>
+          </div>
+          <div class="kpi" role="listitem">
+            <div class="label">Macro recall</div>
+            <div class="value">0.9804</div>
+            <div class="delta delta-up">▲ +0.1191 vs 0.8613</div>
+          </div>
+          <div class="kpi" role="listitem">
+            <div class="label">Macro precision</div>
+            <div class="value">1.0000</div>
+            <div class="delta delta-flat">▬ unchanged · 1.0000</div>
+          </div>
+          <div class="kpi" role="listitem">
+            <div class="label">Best val mAP@0.5</div>
+            <div class="value">0.9874</div>
+            <div class="delta delta-up">▲ +0.0385 vs 0.9489</div>
+          </div>
+          <div class="kpi" role="listitem">
+            <div class="label">Best val mAP@0.5:0.95</div>
+            <div class="value">0.8134</div>
+            <div class="delta delta-up">▲ +0.0883 vs 0.7251</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="setup" class="reveal">
+        <h2><span class="num">01</span>Experimental setup</h2>
+        <p>Both runs were executed end-to-end through the same notebook pipeline (<code>nb01_data_collection</code> → <code>nb05_model_evaluation</code>) on the same hardware and with identical hyperparameters. Because every controllable variable is held fixed, every metric delta below is attributable to the <strong>dataset change</strong>.</p>
+
+        <pre><code>Raw exports (Roboflow / Kaggle / custom HUB captures)
+        │
+    [NB01]  Aggregate ~200 (image, label) pairs/class
+        │
+    [NB02]  Remap class IDs · stratified 70/20/10 split
+        │
+    [NB03]  Health check: balance, box geometry, leakage
+        │
+    [NB04]  Train YOLOv11n · 100 epochs · SGD · patience 15
+        │
+    [NB05]  Evaluate on held-out test split (80 images)
+        │
+    [NB07]  Export to ONNX (opset 12, dynamic axes)</code></pre>
+
+        <h3>Identical hyperparameters</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Hyper-parameter</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td>Backbone</td><td><code>yolo11n.pt</code> (pretrained COCO)</td></tr>
+              <tr><td>Image size</td><td>640 × 640</td></tr>
+              <tr><td>Batch</td><td>16</td></tr>
+              <tr><td>Optimiser</td><td>SGD · lr0=0.01 · lrf=0.01 · momentum 0.937 · weight decay 5e-4</td></tr>
+              <tr><td>Epochs</td><td>100 (early stop, patience = 15)</td></tr>
+              <tr><td>Augmentation</td><td>mosaic 1.0 (closed last 10 ep) · HSV-S 0.7 · HSV-V 0.4 · fliplr 0.5 · randaugment · erasing 0.4</td></tr>
+              <tr><td>Loss weights</td><td>box 7.5 · cls 0.5 · dfl 1.5</td></tr>
+              <tr><td>Seed</td><td>42 · deterministic</td></tr>
+              <tr><td>AMP</td><td>enabled</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="dataset" class="reveal">
+        <h2><span class="num">02</span>Dataset comparison</h2>
+
+        <h3>2.1 Source availability (before capping)</h3>
+        <p>The new dataset narrows the gap between over- and under-sourced classes — trimming the previously dominant <code>fire_extinguisher</code> pool while broadening <code>whiteboard</code> and adding more in-house <code>door_sign</code> captures.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Class</th><th class="num">Batch 04 pairs</th><th class="num">Batch 05 pairs</th><th class="num">Δ</th></tr></thead>
+            <tbody>
+              <tr><td>projector</td><td class="num">319</td><td class="num">249</td><td class="num delta-neg">−70</td></tr>
+              <tr><td>whiteboard</td><td class="num">200</td><td class="num">238</td><td class="num delta-pos">+38</td></tr>
+              <tr><td>fire_extinguisher</td><td class="num">848</td><td class="num">248</td><td class="num delta-neg">−600</td></tr>
+              <tr><td>door_sign</td><td class="num">240</td><td class="num">244</td><td class="num delta-pos">+4</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>2.2 Stratified split distribution</h3>
+        <p>Batch 04 produced a perfectly balanced split; Batch 05 has a mild shortfall on <code>projector</code> after deduplication and filtering.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Split</th><th class="num">Batch 04 (p · w · f · d)</th><th class="num">Batch 05 (p · w · f · d)</th></tr></thead>
+            <tbody>
+              <tr><td>train</td><td class="num">140 · 140 · 140 · 140</td><td class="num"><strong>123</strong> · 140 · 140 · 140</td></tr>
+              <tr><td>val</td><td class="num">40 · 40 · 40 · 40</td><td class="num"><strong>36</strong> · 40 · 40 · 40</td></tr>
+              <tr><td>test</td><td class="num">20 · 20 · 20 · 20</td><td class="num"><strong>18</strong> · 20 · 20 · 20</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="fig-pair">
+          <figure class="fig b04">
+            <div class="fig-head"><span class="fig-title">Class distribution</span><span class="pill b04">Batch 04</span></div>
+            <img loading="lazy" src="figures/batch04/class_distribution_bar.png" alt="Batch 04 class distribution bar chart" />
+          </figure>
+          <figure class="fig b05">
+            <div class="fig-head"><span class="fig-title">Class distribution</span><span class="pill b05">Batch 05</span></div>
+            <img loading="lazy" src="figures/batch05/class_distribution_bar.png" alt="Batch 05 class distribution bar chart" />
+          </figure>
+        </div>
+
+        <h3>2.3 Label density and box geometry</h3>
+        <p>The updated dataset is meaningfully <strong>denser in bounding boxes</strong> — Batch 05 carries 1,151 total boxes vs Batch 04's 997, despite the identical image budget. Empty-label images dropped across every split.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Metric</th><th class="num">Batch 04</th><th class="num">Batch 05</th><th class="num">Δ</th></tr></thead>
+            <tbody>
+              <tr><td>train images</td><td class="num">560</td><td class="num">560</td><td class="num delta-zero">0</td></tr>
+              <tr><td>train boxes</td><td class="num">695</td><td class="num">810</td><td class="num delta-pos">+115</td></tr>
+              <tr><td>train empty labels</td><td class="num">25</td><td class="num">17</td><td class="num delta-pos">−8</td></tr>
+              <tr><td>val boxes</td><td class="num">200</td><td class="num">229</td><td class="num delta-pos">+29</td></tr>
+              <tr><td>val empty labels</td><td class="num">7</td><td class="num">4</td><td class="num delta-pos">−3</td></tr>
+              <tr><td>test boxes</td><td class="num">102</td><td class="num">112</td><td class="num delta-pos">+10</td></tr>
+              <tr><td>test empty labels</td><td class="num">3</td><td class="num">2</td><td class="num delta-pos">−1</td></tr>
+              <tr><td>tiny boxes (all splits)</td><td class="num">0</td><td class="num">1</td><td class="num delta-neg">+1</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="fig-pair">
+          <figure class="fig b04">
+            <div class="fig-head"><span class="fig-title">Box-area histogram</span><span class="pill b04">Batch 04</span></div>
+            <img loading="lazy" src="figures/batch04/box_area_histogram.png" alt="Batch 04 box area histogram" />
+          </figure>
+          <figure class="fig b05">
+            <div class="fig-head"><span class="fig-title">Box-area histogram</span><span class="pill b05">Batch 05</span></div>
+            <img loading="lazy" src="figures/batch05/box_area_histogram.png" alt="Batch 05 box area histogram" />
+          </figure>
+        </div>
+
+        <div class="fig-pair">
+          <figure class="fig b04">
+            <div class="fig-head"><span class="fig-title">Image dimensions</span><span class="pill b04">Batch 04</span></div>
+            <img loading="lazy" src="figures/batch04/image_dimensions_scatter.png" alt="Batch 04 image dimensions scatter plot" />
+          </figure>
+          <figure class="fig b05">
+            <div class="fig-head"><span class="fig-title">Image dimensions</span><span class="pill b05">Batch 05</span></div>
+            <img loading="lazy" src="figures/batch05/image_dimensions_scatter.png" alt="Batch 05 image dimensions scatter plot" />
+          </figure>
+        </div>
+
+        <div class="fig-pair">
+          <figure class="fig b04">
+            <div class="fig-head"><span class="fig-title">Label distribution · per-class XY</span><span class="pill b04">Batch 04</span></div>
+            <img loading="lazy" src="figures/batch04/label_distribution.jpg" alt="Batch 04 label distribution" />
+          </figure>
+          <figure class="fig b05">
+            <div class="fig-head"><span class="fig-title">Label distribution · per-class XY</span><span class="pill b05">Batch 05</span></div>
+            <img loading="lazy" src="figures/batch05/label_distribution.jpg" alt="Batch 05 label distribution" />
+          </figure>
+        </div>
+      </section>
+
+      <section id="training" class="reveal">
+        <h2><span class="num">03</span>Training dynamics</h2>
+
+        <h3>3.1 Best-epoch summary</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Metric</th><th class="num">Batch 04</th><th class="num">Batch 05</th><th class="num">Δ</th></tr></thead>
+            <tbody>
+              <tr><td>Epochs trained</td><td class="num">100</td><td class="num">87 · early stop</td><td class="num delta-pos">−13</td></tr>
+              <tr><td>Best epoch</td><td class="num">60</td><td class="num">70</td><td class="num delta-zero">+10</td></tr>
+              <tr><td>Best val mAP@0.5</td><td class="num">0.9489</td><td class="num">0.9874</td><td class="num delta-pos">+0.0385</td></tr>
+              <tr><td>Best val mAP@0.5:0.95</td><td class="num">0.7251</td><td class="num">0.8134</td><td class="num delta-pos">+0.0883</td></tr>
+              <tr><td>Final train box loss</td><td class="num">0.5109</td><td class="num">0.5632</td><td class="num delta-neg">+0.0523</td></tr>
+              <tr><td>Final train cls loss</td><td class="num">0.3839</td><td class="num">0.3976</td><td class="num delta-neg">+0.0137</td></tr>
+              <tr><td>Final val box loss</td><td class="num">0.8409</td><td class="num">0.6743</td><td class="num delta-pos">−0.1666</td></tr>
+              <tr><td>Final val cls loss</td><td class="num">0.5516</td><td class="num">0.4186</td><td class="num delta-pos">−0.1330</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout">
+          <strong>Reading the gap.</strong> Train losses tick up slightly (the new dataset is harder to memorise — more multi-instance scenes), while val losses fall sharply. That divergence is the desirable signature of better <em>generalisation</em>, not over-fitting.
+        </div>
+
+        <h3>3.2 Training curves</h3>
+        <div class="fig-pair">
+          <figure class="fig b04">
+            <div class="fig-head"><span class="fig-title">Training curves</span><span class="pill b04">Batch 04</span></div>
+            <img loading="lazy" src="figures/batch04/training_curves.png" alt="Batch 04 training curves" />
+          </figure>
+          <figure class="fig b05">
+            <div class="fig-head"><span class="fig-title">Training curves</span><span class="pill b05">Batch 05</span></div>
+            <img loading="lazy" src="figures/batch05/training_curves.png" alt="Batch 05 training curves" />
+          </figure>
+        </div>
+
+        <h3>3.3 Sanity predictions (training-time)</h3>
+        <div class="fig-pair">
+          <figure class="fig b04">
+            <div class="fig-head"><span class="fig-title">Sanity predictions</span><span class="pill b04">Batch 04</span></div>
+            <img loading="lazy" src="figures/batch04/sanity_predictions_grid.png" alt="Batch 04 sanity predictions" />
+          </figure>
+          <figure class="fig b05">
+            <div class="fig-head"><span class="fig-title">Sanity predictions</span><span class="pill b05">Batch 05</span></div>
+            <img loading="lazy" src="figures/batch05/sanity_predictions_grid.png" alt="Batch 05 sanity predictions" />
+          </figure>
+        </div>
+      </section>
+
+      <section id="eval" class="reveal">
+        <h2><span class="num">04</span>Test evaluation <span style="font-size:.55em;color:var(--ink-3);font-weight:500;">— held-out · 80 images</span></h2>
+
+        <h3>4.1 Overall metrics</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Metric</th><th class="num">Batch 04</th><th class="num">Batch 05</th><th class="num">Δ</th></tr></thead>
+            <tbody>
+              <tr><td>mAP@0.5</td><td class="num">0.9332</td><td class="num">0.9876</td><td class="num delta-pos">+0.0544</td></tr>
+              <tr><td>mAP@0.5:0.95</td><td class="num">0.7959</td><td class="num">0.8728</td><td class="num delta-pos">+0.0769</td></tr>
+              <tr><td>Precision (macro)</td><td class="num">1.0000</td><td class="num">1.0000</td><td class="num delta-zero">0.0000</td></tr>
+              <tr><td>Recall (macro)</td><td class="num">0.8613</td><td class="num">0.9804</td><td class="num delta-pos">+0.1191</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout">
+          <strong>Headline:</strong> a <strong>+11.9 pp</strong> recall jump at <strong>unchanged precision (1.0)</strong>. Batch 05 catches substantially more true positives without admitting a single new false positive.
+        </div>
+
+        <h3>4.2 Per-class metrics</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Class</th><th>Metric</th><th class="num">Batch 04</th><th class="num">Batch 05</th><th class="num">Δ</th></tr></thead>
+            <tbody>
+              <tr><td rowspan="4" class="row-group">projector</td><td>precision</td><td class="num">1.000</td><td class="num">1.000</td><td class="num delta-zero">0.000</td></tr>
+              <tr><td>recall</td><td class="num">0.8036</td><td class="num">1.0000</td><td class="num delta-pos">+0.1964</td></tr>
+              <tr><td>mAP@0.5</td><td class="num">0.8964</td><td class="num">0.9950</td><td class="num delta-pos">+0.0986</td></tr>
+              <tr><td>mAP@0.5:0.95</td><td class="num">0.7290</td><td class="num">0.9377</td><td class="num delta-pos">+0.2087</td></tr>
+
+              <tr><td rowspan="4" class="row-group">whiteboard</td><td>precision</td><td class="num">1.000</td><td class="num">1.000</td><td class="num delta-zero">0.000</td></tr>
+              <tr><td>recall</td><td class="num">0.7625</td><td class="num">0.9500</td><td class="num delta-pos">+0.1875</td></tr>
+              <tr><td>mAP@0.5</td><td class="num">0.8761</td><td class="num">0.9750</td><td class="num delta-pos">+0.0989</td></tr>
+              <tr><td>mAP@0.5:0.95</td><td class="num">0.7767</td><td class="num">0.9413</td><td class="num delta-pos">+0.1646</td></tr>
+
+              <tr><td rowspan="4" class="row-group">fire_extinguisher</td><td>precision</td><td class="num">1.000</td><td class="num">1.000</td><td class="num delta-zero">0.000</td></tr>
+              <tr><td>recall</td><td class="num">0.9565</td><td class="num">1.0000</td><td class="num delta-pos">+0.0435</td></tr>
+              <tr><td>mAP@0.5</td><td class="num">0.9780</td><td class="num">0.9950</td><td class="num delta-pos">+0.0170</td></tr>
+              <tr><td>mAP@0.5:0.95</td><td class="num">0.9045</td><td class="num">0.8762</td><td class="num delta-neg">−0.0283</td></tr>
+
+              <tr><td rowspan="4" class="row-group">door_sign</td><td>precision</td><td class="num">1.000</td><td class="num">1.000</td><td class="num delta-zero">0.000</td></tr>
+              <tr><td>recall</td><td class="num">0.9224</td><td class="num">0.9714</td><td class="num delta-pos">+0.0490</td></tr>
+              <tr><td>mAP@0.5</td><td class="num">0.9822</td><td class="num">0.9855</td><td class="num delta-pos">+0.0033</td></tr>
+              <tr><td>mAP@0.5:0.95</td><td class="num">0.7733</td><td class="num">0.7359</td><td class="num delta-neg">−0.0374</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The two weakest classes in Batch 04 — <code>projector</code> and <code>whiteboard</code> — were the largest beneficiaries. Both now sit above 0.975 mAP@0.5 and break 0.94 mAP@0.5:0.95. The minor regressions on the stricter mAP@0.5:0.95 metric for <code>fire_extinguisher</code> and <code>door_sign</code> are localised tightness losses; both classes still record higher recall and higher mAP@0.5.</p>
+
+        <h3>4.3 Precision–Recall curves</h3>
+        <div class="fig-pair">
+          <figure class="fig b04">
+            <div class="fig-head"><span class="fig-title">PR curve</span><span class="pill b04">Batch 04</span></div>
+            <img loading="lazy" src="figures/batch04/BoxPR_curve.png" alt="Batch 04 PR curve" />
+          </figure>
+          <figure class="fig b05">
+            <div class="fig-head"><span class="fig-title">PR curve</span><span class="pill b05">Batch 05</span></div>
+            <img loading="lazy" src="figures/batch05/BoxPR_curve.png" alt="Batch 05 PR curve" />
+          </figure>
+        </div>
+
+        <h3>4.4 F1 curves</h3>
+        <div class="fig-pair">
+          <figure class="fig b04">
+            <div class="fig-head"><span class="fig-title">F1 curve</span><span class="pill b04">Batch 04</span></div>
+            <img loading="lazy" src="figures/batch04/BoxF1_curve.png" alt="Batch 04 F1 curve" />
+          </figure>
+          <figure class="fig b05">
+            <div class="fig-head"><span class="fig-title">F1 curve</span><span class="pill b05">Batch 05</span></div>
+            <img loading="lazy" src="figures/batch05/BoxF1_curve.png" alt="Batch 05 F1 curve" />
+          </figure>
+        </div>
+
+        <h3>4.5 Confusion matrices · normalised</h3>
+        <div class="fig-pair">
+          <figure class="fig b04">
+            <div class="fig-head"><span class="fig-title">Confusion · normalised</span><span class="pill b04">Batch 04</span></div>
+            <img loading="lazy" src="figures/batch04/confusion_matrix_normalized.png" alt="Batch 04 normalised confusion matrix" />
+          </figure>
+          <figure class="fig b05">
+            <div class="fig-head"><span class="fig-title">Confusion · normalised</span><span class="pill b05">Batch 05</span></div>
+            <img loading="lazy" src="figures/batch05/confusion_matrix_normalized.png" alt="Batch 05 normalised confusion matrix" />
+          </figure>
+        </div>
+
+        <h3>4.6 Confusion matrices · custom view</h3>
+        <div class="fig-pair">
+          <figure class="fig b04">
+            <div class="fig-head"><span class="fig-title">Confusion · custom</span><span class="pill b04">Batch 04</span></div>
+            <img loading="lazy" src="figures/batch04/confusion_matrix_custom.png" alt="Batch 04 custom confusion matrix" />
+          </figure>
+          <figure class="fig b05">
+            <div class="fig-head"><span class="fig-title">Confusion · custom</span><span class="pill b05">Batch 05</span></div>
+            <img loading="lazy" src="figures/batch05/confusion_matrix_custom.png" alt="Batch 05 custom confusion matrix" />
+          </figure>
+        </div>
+
+        <h3>4.7 Qualitative predictions</h3>
+        <div class="fig-pair">
+          <figure class="fig b04">
+            <div class="fig-head"><span class="fig-title">Qualitative predictions</span><span class="pill b04">Batch 04</span></div>
+            <img loading="lazy" src="figures/batch04/qualitative_predictions.png" alt="Batch 04 qualitative predictions" />
+          </figure>
+          <figure class="fig b05">
+            <div class="fig-head"><span class="fig-title">Qualitative predictions</span><span class="pill b05">Batch 05</span></div>
+            <img loading="lazy" src="figures/batch05/qualitative_predictions.png" alt="Batch 05 qualitative predictions" />
+          </figure>
+        </div>
+      </section>
+
+      <section id="discussion" class="reveal">
+        <h2><span class="num">05</span>Discussion</h2>
+
+        <h3>5.1 Why did Batch 05 win?</h3>
+        <p>The improvement is <em>not</em> a hyperparameter win — every knob was identical. Three dataset-level changes explain the lift:</p>
+        <ol>
+          <li><strong>Better source balance.</strong> Batch 04's <code>fire_extinguisher</code> pool (848 candidates) and <code>projector</code> pool (319) dominated the cap-to-200 step, so surviving training images were drawn from a narrow style distribution. Batch 05's source pools sit between 238–249 across all four classes — the cap is a much shallower filter and per-class style coverage is broader.</li>
+          <li><strong>More custom in-house data.</strong> Batch 05 adds more HUB-campus captures to the <code>door_sign</code> set with materially different framing variety, and the new captures broaden the <code>projector</code> and <code>whiteboard</code> distributions toward real classroom conditions — which the test split also samples.</li>
+          <li><strong>Multi-instance scenes.</strong> Total annotated boxes climbed from 997 → 1,151 (+15.4%) at constant image count. The model sees more boxes per gradient step and learns to handle co-occurring objects, lifting recall and the stricter IoU buckets that dominate mAP@0.5:0.95.</li>
+        </ol>
+
+        <h3>5.2 Why early-stop at 87 epochs?</h3>
+        <p>The patience-15 trigger fired because val mAP plateaued shortly after the epoch-70 best. Combined with the lower final val losses, Batch 05 reached a flatter optimum <em>earlier</em> — more data of higher quality reduced the gradient steps needed to saturate.</p>
+
+        <h3>5.3 Train-loss vs val-loss split</h3>
+        <div class="chips">
+          <span class="chip b04">Batch 04 gap: 0.84 − 0.51 = <strong>0.33</strong></span>
+          <span class="chip b05">Batch 05 gap: 0.67 − 0.56 = <strong>0.11</strong></span>
+        </div>
+        <p>A higher train loss with a lower val loss is the canonical "more representative training data" outcome. Batch 05's training set is harder (more boxes per image, more scene variety) but the model that learns to fit it transfers cleanly to val and test.</p>
+
+        <h3>5.4 Remaining failure modes</h3>
+        <p><code>door_sign</code> and <code>fire_extinguisher</code> retained the same recall ceiling on the strict 0.5:0.95 IoU band (−2.8 to −3.7 pp). These two classes are the smallest in absolute pixel area in the test split, so sub-pixel localisation drift is penalised. A follow-up batch should consider:</p>
+        <ul>
+          <li>Higher-resolution training (<code>imgsz=896</code> or <code>1024</code>) for small-object refinement.</li>
+          <li>Stronger geometric augmentation (<code>scale=0.75</code>, <code>degrees=10</code>) to teach tighter localisation under perspective.</li>
+          <li>A YOLOv11s upgrade (9.4M params) — the <code>variant_comparison.csv</code> slot is reserved for this experiment.</li>
+        </ul>
+      </section>
+
+      <section id="conclusion" class="reveal">
+        <h2><span class="num">06</span>Conclusion</h2>
+        <p>Re-training on the updated custom dataset — same model, same hyperparameters, same seed — moved every meaningful headline metric in the right direction:</p>
+        <ul>
+          <li><strong>+5.4 pp</strong> test mAP@0.5 → <strong>0.9876</strong></li>
+          <li><strong>+7.7 pp</strong> test mAP@0.5:0.95 → <strong>0.8728</strong></li>
+          <li><strong>+11.9 pp</strong> macro recall at unchanged precision (1.0) → <strong>0.9804</strong></li>
+          <li>Three of four classes now exceed mAP@0.5 = 0.985; the fourth sits at 0.975</li>
+        </ul>
+        <div class="callout cool">
+          The dataset refresh is the single highest-leverage intervention applied to this project to date. <strong>Batch 05 is recommended as the shippable model</strong> and the new baseline for any further architecture or augmentation experiments.
+        </div>
+
+        <hr class="sep" />
+        <div class="foot">
+          <strong>Artifacts.</strong> Trained weights and ONNX exports live under <code>model_outputs/04_training_batch_1_48am_24_04_2026/</code> and <code>model_outputs/05_training_batch_12_06am_12_05_2026/</code>. Top-level Batch 05 ONNX: <code>05_model_weights/best.onnx</code>. Source notebooks under <code>notebooks/01..08</code>.
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  // Scroll progress bar
+  (function () {
+    var bar = document.getElementById('progress');
+    function tick() {
+      var doc = document.documentElement;
+      var max = (doc.scrollHeight - doc.clientHeight) || 1;
+      var p = Math.max(0, Math.min(1, window.scrollY / max));
+      bar.style.setProperty('--p', p.toFixed(4));
+    }
+    document.addEventListener('scroll', tick, { passive: true });
+    window.addEventListener('resize', tick);
+    tick();
+  })();
+
+  // Entrance reveal on intersect (respects reduced motion)
+  (function () {
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var items = document.querySelectorAll('.reveal');
+    if (reduce || !('IntersectionObserver' in window)) {
+      items.forEach(function (el) { el.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -8% 0px' });
+    items.forEach(function (el) { io.observe(el); });
+  })();
+
+  // Active TOC link
+  (function () {
+    var links = Array.from(document.querySelectorAll('.toc a[href^="#"]'));
+    if (!links.length || !('IntersectionObserver' in window)) return;
+    var map = {};
+    links.forEach(function (a) {
+      var id = a.getAttribute('href').slice(1);
+      var sec = document.getElementById(id);
+      if (sec) map[id] = a;
+    });
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          links.forEach(function (l) { l.classList.remove('active'); });
+          var id = e.target.id;
+          if (map[id]) map[id].classList.add('active');
+        }
+      });
+    }, { rootMargin: '-40% 0px -55% 0px', threshold: 0.01 });
+    Object.keys(map).forEach(function (id) { io.observe(document.getElementById(id)); });
+  })();
+</script>
+
+</body>
+</html>
