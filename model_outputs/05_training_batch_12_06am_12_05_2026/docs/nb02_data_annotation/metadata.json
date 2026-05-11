@@ -1,0 +1,27 @@
+{
+  "notebook": "02_data_annotation.ipynb",
+  "description": "Merge per-class folders into one stratified 70/20/10 split. Remap class_ids. Write manifest.csv and data.yaml.",
+  "outputs": {
+    "stratified_split.csv": "Image counts per class per split.",
+    "boxes_per_split_class.csv": "Image and bounding-box counts per (split, class).",
+    "structural_validation.csv": "Label coverage table. Result: PASS.",
+    "spot_check_grid.png": "3x4 grid: 3 random train images per class with bounding boxes overlaid.",
+    "data.yaml": "Ultralytics data config: paths, split names, class index mapping."
+  },
+  "key_facts": {
+    "split_ratios": {
+      "train": 0.7,
+      "val": 0.2,
+      "test": 0.1
+    },
+    "total_images": 800,
+    "total_boxes": 1151,
+    "class_map": {
+      "projector": 0,
+      "whiteboard": 1,
+      "fire_extinguisher": 2,
+      "door_sign": 3
+    },
+    "validation_result": "PASS"
+  }
+}

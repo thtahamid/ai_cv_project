@@ -1,0 +1,10 @@
+{
+  "mAP_at_0.5": 0.8728,
+  "mAP_at_0.5_0.95": 0.8728,
+  "precision_macro": 1.0,
+  "recall_macro": 0.9804,
+  "model": "yolo11n",
+  "conf_threshold": 0.25,
+  "iou_threshold": 0.5,
+  "imgsz": 640
+}

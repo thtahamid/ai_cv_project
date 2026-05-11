@@ -1,0 +1,10 @@
+{
+  "epochs_trained": 87,
+  "best_epoch": 70,
+  "best_val_mAP50": 0.9874,
+  "best_val_mAP50_95": 0.8134,
+  "final_train_box_loss": 0.5632,
+  "final_train_cls_loss": 0.3976,
+  "final_val_box_loss": 0.6743,
+  "final_val_cls_loss": 0.4186
+}
