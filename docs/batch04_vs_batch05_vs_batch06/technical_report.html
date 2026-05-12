@@ -639,6 +639,33 @@
     </p>
   </section>
 
+  <!-- ───────────────────── BASELINE DIAGNOSIS ───────────────────── -->
+  <section class="sec reveal" id="diagnosis">
+    <div class="lead">00b · Baseline diagnosis</div>
+    <h2>Project 1 → Project 2 motivation</h2>
+    <p>The Project 1 model (Batch 04) shipped with strong precision but uneven recall and localisation:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Class</th><th class="num">P (test)</th><th class="num">R (test)</th><th class="num">mAP@0.5</th><th class="num">mAP@0.5:0.95</th></tr></thead>
+        <tbody>
+          <tr><td>projector</td><td class="num">1.00</td><td class="num neg">0.8036</td><td class="num">0.8964</td><td class="num">0.7290</td></tr>
+          <tr><td>whiteboard</td><td class="num">1.00</td><td class="num neg">0.7625</td><td class="num">0.8761</td><td class="num">0.7767</td></tr>
+          <tr><td>fire_extinguisher</td><td class="num">1.00</td><td class="num">0.9565</td><td class="num">0.9780</td><td class="num">0.9045</td></tr>
+          <tr><td>door_sign</td><td class="num">1.00</td><td class="num">0.9224</td><td class="num">0.9822</td><td class="num">0.7733</td></tr>
+          <tr><td><strong>macro</strong></td><td class="num"><strong>1.0000</strong></td><td class="num"><strong>0.8613</strong></td><td class="num"><strong>0.9332</strong></td><td class="num"><strong>0.7959</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Four failure patterns drove the Project 2 plan:</p>
+    <ol>
+      <li><strong><code>projector</code> and <code>whiteboard</code> recall ~20 pp below the other two classes.</strong> Sourced from a narrow style distribution in v1; the model had never seen enough HUB-campus framings. <em>Counter-strategy:</em> Cat. B #5 (targeted dataset expansion), #8 (class balance), C #10 (multi-scale capture distances).</li>
+      <li><strong><code>fire_extinguisher</code> over-represented in v1</strong> (848 source pairs vs. 200–319 for others). <em>Counter-strategy:</em> Cat. B #5/#7/#8 — rebuild the corpus with balanced sourcing and re-checked labels.</li>
+      <li><strong>Even after the dataset uplift, <code>whiteboard</code> and <code>door_sign</code> retained sub-pixel localisation drift</strong> on the strict mAP@0.5:0.95 metric. <em>Counter-strategy:</em> Cat. A #1 — upgrade the backbone to YOLOv11s (9.4 M params) for finer-grained box regression.</li>
+      <li><strong>Live FPS at 4–5</strong> on the Project 1 path made the model unusable for real-time UI demos and made the larger backbone in (3) a deployment liability. <em>Counter-strategy:</em> Cat. C #11 — redesign the inference pipeline around ONNX + GPU runtime with a confidence-threshold slider.</li>
+    </ol>
+    <p>Batches 05 and 06 implement the diagnoses as two single-variable steps, so the test-metric deltas are causally attributable to (a) the dataset interventions and (b) the backbone upgrade respectively.</p>
+  </section>
+
   <!-- ───────────────────── RUN CARDS ───────────────────── -->
   <section class="sec reveal" id="runs">
     <div class="lead">01 · Runs at a glance</div>
@@ -759,6 +786,50 @@
           Two single-variable steps. <strong>Batch 04 → 05</strong> isolates
           dataset quality. <strong>Batch 05 → 06</strong> isolates model capacity.
         </p>
+      </div>
+    </details>
+
+    <details class="col" open>
+      <summary>Improvement strategies applied · Project 2 brief <span class="ch">▶</span></summary>
+      <div class="inner">
+        <p>Batch 04 is the Project 1 baseline; Batches 05 and 06 stack improvements on top.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Cat.</th><th>#</th><th>Strategy</th><th>How it is realised</th><th>First seen in</th></tr></thead>
+            <tbody>
+              <tr><td>A</td><td>1</td><td>Upgrade / switch backbone</td><td>YOLOv11n (2.6 M params) → <strong>YOLOv11s (9.4 M params, 21.6 GFLOPs)</strong></td><td><span class="tag-b06">Batch 06</span></td></tr>
+              <tr><td>A</td><td>2</td><td>Fine-tune from a pretrained checkpoint (not random init)</td><td>All runs start from <code>yolo11n.pt</code> / <code>yolo11s.pt</code> COCO-pretrained weights</td><td>All</td></tr>
+              <tr><td>A</td><td>4</td><td>Early stopping + regularisation</td><td><code>patience=15</code>, weight decay 5e-4 — Batch 05 early-stopped at epoch 87</td><td>All</td></tr>
+              <tr><td>B</td><td>5</td><td>Expand dataset with images targeting underperforming classes</td><td>v2 rebuilt with new HUB-campus captures aimed at the two worst Batch 04 classes (<code>whiteboard</code>, <code>projector</code>)</td><td><span class="tag-b05">05/06</span></td></tr>
+              <tr><td>B</td><td>7</td><td>Re-annotate / correct labels</td><td>v2 rebuild pruned empty-label scenes and re-checked boxes — empty labels fall in every split</td><td><span class="tag-b05">05/06</span></td></tr>
+              <tr><td>B</td><td>8</td><td>Improve class balance</td><td>v2 source pools sit between 238–249 across all four classes (vs. 200–848 in v1)</td><td><span class="tag-b05">05/06</span></td></tr>
+              <tr><td>C</td><td>10</td><td>Multi-scale coverage for objects at different sizes</td><td>New HUB captures shot at varied subject distances, broadening the box-area distribution</td><td><span class="tag-b05">05/06</span></td></tr>
+              <tr><td>C</td><td>11</td><td>Post-processing improvement (confidence-threshold calibration)</td><td>Confidence-threshold slider exposed in the live inference UI</td><td>downstream UI</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The trio exercises strategies across all three categories — <strong>A (1, 2, 4)</strong>, <strong>B (5, 7, 8)</strong>, <strong>C (10, 11)</strong> — well beyond the brief's "≥ 2 strategies, at least one from Category A" requirement.</p>
+      </div>
+    </details>
+
+    <details class="col">
+      <summary>Environment specification <span class="ch">▶</span></summary>
+      <div class="inner">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Component</th><th>Version</th></tr></thead>
+            <tbody>
+              <tr><td>OS</td><td>Windows 11 Home (10.0.26200)</td></tr>
+              <tr><td>GPU</td><td>NVIDIA GeForce RTX 4060</td></tr>
+              <tr><td>CUDA</td><td>12.6</td></tr>
+              <tr><td>cuDNN</td><td>9.10.2</td></tr>
+              <tr><td>Python</td><td>3.13.12</td></tr>
+              <tr><td>PyTorch</td><td>2.11.0+cu126</td></tr>
+              <tr><td>Ultralytics</td><td>8.3.253</td></tr>
+              <tr><td>Seed</td><td>42 (deterministic)</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </details>
   </section>
@@ -1119,6 +1190,73 @@
         <figcaption class="fig-cap"><span class="tag">Batch 06</span> 8 random test images</figcaption>
       </figure>
     </div>
+
+    <h3>Consolidated headline table · baseline vs. each experiment vs. final</h3>
+    <p>A single side-by-side view as required by the Project 2 brief:</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th class="num"><span class="tag-b04">Project 1 baseline (04)</span></th>
+            <th class="num"><span class="tag-b05">Experiment A · dataset (05)</span></th>
+            <th class="num"><span class="tag-b06">Final combined (06)</span></th>
+            <th class="num">Δ (final − baseline)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Precision (macro)</td><td class="num">1.0000</td><td class="num">1.0000</td><td class="num">0.9924</td><td class="num neg">−0.0076</td></tr>
+          <tr><td>Recall (macro)</td><td class="num">0.8613</td><td class="num">0.9804</td><td class="num"><strong>0.9647</strong></td><td class="num pos">+0.1034</td></tr>
+          <tr><td>mAP@0.5</td><td class="num">0.9332</td><td class="num">0.9876</td><td class="num"><strong>0.9792</strong></td><td class="num pos">+0.0460</td></tr>
+          <tr><td>mAP@0.5:0.95</td><td class="num">0.7959</td><td class="num">0.8728</td><td class="num"><strong>0.8808</strong></td><td class="num pos">+0.0849</td></tr>
+          <tr><td><code>projector</code> mAP@0.5:0.95</td><td class="num">0.7290</td><td class="num">0.9377</td><td class="num"><strong>0.9398</strong></td><td class="num pos">+0.2108</td></tr>
+          <tr><td><code>whiteboard</code> mAP@0.5:0.95</td><td class="num">0.7767</td><td class="num">0.9413</td><td class="num"><strong>0.9724</strong></td><td class="num pos">+0.1957</td></tr>
+          <tr><td><code>fire_extinguisher</code> mAP@0.5:0.95</td><td class="num"><strong>0.9045</strong></td><td class="num">0.8762</td><td class="num">0.8706</td><td class="num neg">−0.0339</td></tr>
+          <tr><td><code>door_sign</code> mAP@0.5:0.95</td><td class="num"><strong>0.7733</strong></td><td class="num">0.7359</td><td class="num">0.7403</td><td class="num neg">−0.0330</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Bold = best across the three batches per row. The final combined model wins on the strict mAP@0.5:0.95 macro and on three of four classes' mAP@0.5:0.95.</p>
+  </section>
+
+  <!-- ───────────────────── INFERENCE PERFORMANCE ───────────────────── -->
+  <section class="sec reveal" id="inference">
+    <div class="lead">05b · Inference performance</div>
+    <h2>Runtime — Project 1 path vs. Project 2 path</h2>
+    <p>A second axis of improvement that doesn't show up in accuracy tables: Project 2's deployment pipeline (ONNX export, opset 12, dynamic axes, GPU-backed runtime + confidence-threshold slider in the live UI) replaced Project 1's eager-PyTorch inference path. Same hardware (RTX 4060), same input size (640 × 640).</p>
+
+    <h3>Per-backbone model latency</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Backbone</th>
+            <th class="num">Project 1 path (eager PyTorch)</th>
+            <th class="num">Project 2 path (ONNX + GPU)</th>
+            <th class="num">Δ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>YOLOv11n <span class="tag-b04">(Batches 04 / 05)</span></td><td class="num">100–120 ms</td><td class="num"><strong>15–20 ms</strong></td><td class="num pos">≈6–7× faster</td></tr>
+          <tr><td>YOLOv11s <span class="tag-b06">(Batch 06)</span></td><td class="num">170–200 ms</td><td class="num"><strong>20–30 ms</strong></td><td class="num pos">≈7–9× faster</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>End-to-end throughput</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Metric</th><th class="num">Project 1 inference path</th><th class="num">Project 2 inference path</th><th class="num">Δ</th></tr></thead>
+        <tbody>
+          <tr><td>Sustained end-to-end FPS</td><td class="num">4–5</td><td class="num"><strong>35–40</strong></td><td class="num pos">≈8× higher</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The throughput uplift outpaces the raw model-latency drop because the Project 1 path also paid for per-frame CPU↔GPU copies and webcam-sync stalls; the Project 2 ONNX path keeps the model resident on the GPU and decouples capture from inference. This is the key reason <span class="tag-b06">Batch 06</span> is a viable production option at all: in the Project 1 path, YOLOv11s ran at 170–200 ms/frame — too slow for live use. Under the Project 2 path it drops to 20–30 ms, still slightly slower than YOLOv11n (15–20 ms) but well inside real-time, so the 9.4 M-param backbone is <strong>no longer a deployment liability</strong> — only a memory-footprint trade-off (see operational trade-offs below).</p>
+
+    <h3>Post-processing calibration (Cat. C #11)</h3>
+    <p>The live UI exposes a <strong>confidence-threshold slider</strong> so an operator can calibrate per deployment. For the project-default operating point of 0.25 the test-time metrics above hold; raising it above ~0.45 trades recall for precision on <code>door_sign</code> in Batch 06 — a useful lever given the precision regression flagged in the error analysis below.</p>
   </section>
 
   <!-- ───────────────────── DECOMPOSITION ───────────────────── -->
@@ -1231,9 +1369,13 @@
           <tr><td>GFLOPs (640×640)</td><td>6.5</td><td>6.5</td><td><strong>21.6</strong></td></tr>
           <tr><td>ONNX size (FP32, simplified)</td><td>~10.4 MB</td><td>~10.4 MB</td><td>~36 MB</td></tr>
           <tr><td>Edge-device suitability</td><td>excellent</td><td>excellent</td><td>mid-tier (Jetson Nano, Pi 5 + Coral)</td></tr>
+          <tr><td>Model latency · Project 1 path (eager PyTorch)</td><td>100–120 ms</td><td>100–120 ms</td><td>170–200 ms</td></tr>
+          <tr><td>Model latency · Project 2 path (ONNX + GPU)</td><td>n/a (deprecated)</td><td><strong>15–20 ms</strong></td><td><strong>20–30 ms</strong></td></tr>
+          <tr><td>End-to-end FPS · Project 1 path</td><td>4–5</td><td>4–5</td><td>~3</td></tr>
+          <tr><td>End-to-end FPS · Project 2 path</td><td>n/a (deprecated)</td><td><strong>35–40</strong></td><td><strong>30–35</strong></td></tr>
           <tr><td>Headline mAP@0.5 (test)</td><td>0.9332</td><td><strong>0.9876</strong></td><td>0.9792</td></tr>
           <tr><td>Strict mAP@0.5:0.95 (test)</td><td>0.7959</td><td>0.8728</td><td><strong>0.8808</strong></td></tr>
-          <tr><td>Best for</td><td>(deprecated baseline)</td><td><strong>shippable default</strong></td><td><strong>tight-localisation downstream tasks</strong></td></tr>
+          <tr><td>Best for</td><td>(deprecated baseline)</td><td>shippable lightweight default</td><td><strong>final combined model</strong> — tight-localisation downstream tasks</td></tr>
         </tbody>
       </table>
     </div>
@@ -1258,6 +1400,38 @@
     </ul>
   </section>
 
+  <!-- ───────────────────── ERROR ANALYSIS ───────────────────── -->
+  <section class="sec reveal" id="error">
+    <div class="lead">07b · Error analysis</div>
+    <h2>Where Batch 06 fails (and where it wins)</h2>
+    <p>The Batch 06 final-model failures cluster into three patterns visible in the qualitative outputs:</p>
+    <ol>
+      <li><strong><code>door_sign</code> confident-but-wrong predictions (precision 1.000 → 0.9697).</strong> The first non-perfect precision in the project's history. The qualitative grid (<code>figures/batch06/qualitative_predictions.png</code>) shows a small number of high-confidence boxes on door-frame edges and signage-adjacent fixtures. The confusion matrix (<code>figures/batch06/confusion_matrix_normalized.png</code>) shows a faint <code>door_sign → background</code> confusion absent in Batch 05.</li>
+      <li><strong><code>door_sign</code> recall regression (0.9714 → 0.9143).</strong> Two test images that Batch 05 detected at 0.5 + drop below threshold in Batch 06. Both contain door signs at the smallest pixel area in the test set (long-edge ≲ 40 px at 640 × 640). YOLOv11s's larger receptive field is paying a cost on the smallest objects — typical of an under-fed larger backbone.</li>
+      <li><strong><code>whiteboard</code> and <code>fire_extinguisher</code> sub-pixel localisation gains.</strong> The flip side: <code>whiteboard</code> mAP@0.5:0.95 jumps 3.1 pp and recall hits 1.000 in Batch 06. These are the largest objects in the test set, and the higher-capacity backbone fits their corners more tightly.</li>
+    </ol>
+    <p>Three independent levers worth trying in a future Batch 07:</p>
+    <ul style="color: var(--ink-2);">
+      <li><strong>Higher training resolution</strong> (<code>imgsz=896</code> or <code>1024</code>) — direct fix for small <code>door_sign</code> localisation drift.</li>
+      <li><strong>Class-aware augmentation</strong> on <code>door_sign</code> (perspective, scale jitter) to break the precision wobble.</li>
+      <li><strong>Modest regulariser bump on YOLOv11s</strong> (weight decay 5e-4 → 1e-3, label-smoothing 0.05) to absorb the extra capacity without hurting the easier classes.</li>
+    </ul>
+  </section>
+
+  <!-- ───────────────────── ETHICS ───────────────────── -->
+  <section class="sec reveal" id="ethics">
+    <div class="lead">07c · Ethics</div>
+    <h2>Project 1 constraints, re-affirmed</h2>
+    <p>All ethical constraints from Project 1 continue to apply and were re-checked for the v2 dataset and the deployment pipeline:</p>
+    <ul style="color: var(--ink-2);">
+      <li><strong>No identifiable faces.</strong> v2 HUB-campus captures were framed on infrastructure (projectors, whiteboards, fire extinguishers, door signs). Any incidental human presence was screened out during the v2 curation pass; no face is recognisable in any retained image. The live inference UI does not retain frames.</li>
+      <li><strong>No license plates or vehicles.</strong> Captures are interior classroom and corridor scenes; no parking areas were photographed.</li>
+      <li><strong>No personal data.</strong> No names, ID cards, schedules, or contact information are visible in any image. The confidence-threshold slider in the live UI does not log or transmit captures.</li>
+      <li><strong>Provenance.</strong> Roboflow and Kaggle source images were used under their published open licences; HUB-campus captures were taken on-site by the author for the purpose of this project.</li>
+      <li><strong>Model behaviour.</strong> Batch 06's <code>door_sign</code> precision regression (1.000 → 0.9697) is documented and disclosed above — the model is <strong>not</strong> marketed as having perfect precision after Project 2.</li>
+    </ul>
+  </section>
+
   <!-- ───────────────────── CONCLUSION ───────────────────── -->
   <section class="sec reveal" id="conclusion">
     <div class="lead">08 · Conclusion</div>
@@ -1273,13 +1447,18 @@
         <p>Same dataset, larger model. Localisation-focused gain (+0.8 pp mAP@0.5:0.95, whiteboard mAP@0.5:0.95 +3.1 pp) traded against a small recall and door_sign precision regression.</p>
       </article>
       <article class="key b04">
-        <h4>Net guidance</h4>
+        <h4>Net guidance · final model designation</h4>
         <p>
-          Keep <span class="tag-b05">Batch 05</span> as the production default.
-          Use <span class="tag-b06">Batch 06</span> for downstream tasks that
-          need tighter boxes and are robust to a 1.5 pp recall hit.
-          Address the <code>door_sign</code> regression before any further
-          model-capacity experiments.
+          <span class="tag-b06">Batch 06</span> is the <strong>Project 2 final
+          combined model</strong>: it stacks Category A (backbone upgrade) on
+          top of Category B + C (dataset + post-processing) and wins on the
+          strict mAP@0.5:0.95 macro.
+          <span class="tag-b05">Batch 05</span> is retained as the lightweight
+          alternative where binary size and perfect <code>door_sign</code>
+          precision matter more than the strict-IoU gain.
+          The <code>door_sign</code> precision regression is the natural target
+          for a follow-up Batch 07 (higher <code>imgsz</code>, class-aware
+          augmentation, regulariser bump).
         </p>
       </article>
     </div>

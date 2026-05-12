@@ -5,13 +5,14 @@
 **Author:** Tahamid Hossain
 **Compared runs:**
 
-| | Batch 04 | Batch 05 |
+| | Batch 04 (Project 1 baseline) | Batch 05 (Project 2 — dataset uplift) |
 |---|---|---|
 | Run ID | `04_training_batch_1_48am_24_04_2026` | `05_training_batch_12_06am_12_05_2026` |
 | Trained on | 2026-04-24 · 01:48 | 2026-05-12 · 00:06 |
 | Dataset version | v1 — original aggregated pool (Roboflow + Kaggle + doorsign1–4) | **v2 — updated custom dataset** with rebalanced sourcing and additional in-house captures |
 | Epochs trained | 100 (no early stop) | 87 (early stop, patience=15) |
 | Best epoch | 60 | 70 |
+| Role | **Official Project 1 baseline** (carried forward) | Final model of this report's scope |
 
 ---
 
@@ -20,6 +21,27 @@
 This report contrasts two consecutive training runs of the campus infrastructure detector (`projector`, `whiteboard`, `fire_extinguisher`, `door_sign`). Both runs share the same backbone (YOLOv11n, 2.6M params), input size (640 × 640), optimiser (SGD), schedule (100 epochs, patience 15), and seed (42). The only material variable is the **training corpus**: Batch 05 was retrained on an updated custom dataset with more balanced per-class sourcing, a larger share of in-house door-sign captures, and richer multi-instance scenes.
 
 The result is a substantial jump in detector quality. Validation mAP@0.5 improves from **0.9489 → 0.9874** (+3.85 pp) and mAP@0.5:0.95 from **0.7251 → 0.8134** (+8.83 pp). On the held-out test split, macro recall jumps from **0.8613 → 0.9804** at unchanged precision (1.00), and per-class mAP@0.5 lifts every class above 0.975 — most notably `projector` (0.896 → 0.995) and `whiteboard` (0.876 → 0.975). Batch 05 also converges earlier (best epoch 70 of 87) than Batch 04 (best epoch 60 of 100), suggesting the updated dataset is both easier to fit *and* generalises better.
+
+---
+
+## 0. Baseline Diagnosis (Project 1 → Project 2 motivation)
+
+The Project 1 model (Batch 04) shipped with strong precision but uneven recall:
+
+| Class | P (test) | R (test) | mAP@0.5 | mAP@0.5:0.95 |
+|---|---:|---:|---:|---:|
+| projector | 1.00 | **0.8036** | 0.8964 | 0.7290 |
+| whiteboard | 1.00 | **0.7625** | 0.8761 | 0.7767 |
+| fire_extinguisher | 1.00 | 0.9565 | 0.9780 | 0.9045 |
+| door_sign | 1.00 | 0.9224 | 0.9822 | 0.7733 |
+| **macro** | **1.0000** | **0.8613** | **0.9332** | **0.7959** |
+
+Two failure patterns drove the Project 2 plan:
+
+1. **`projector` and `whiteboard` recall sit ~20 pp below the other two classes.** Both are large, well-framed objects in real classrooms but were sourced from a narrow style distribution in v1 (Roboflow / Kaggle scrapes). Diagnosis ⇒ the model has never seen enough HUB-campus framings of these two classes. *Counter-strategy: Category B #5 (targeted dataset expansion on `projector`/`whiteboard`) and #8 (class balance) and C #10 (multi-scale capture distances).*
+2. **`fire_extinguisher` was over-represented in v1 (848 source pairs vs. 200–319 for the others).** The cap-to-200 step left a narrow style slice surviving. Diagnosis ⇒ the v1 pool itself was the problem, not the trainer. *Counter-strategy: Category B #5/#7/#8 — rebuild the corpus with balanced sourcing and re-checked labels.*
+
+Batch 05 therefore holds every model/training knob fixed and changes only the dataset, so any test-metric delta is causally attributable to the Project 2 dataset-side interventions listed in §1.2.
 
 ---
 
@@ -58,6 +80,37 @@ Raw exports (Roboflow / Kaggle / custom HUB captures)
 | AMP | enabled |
 
 Because every controllable variable is held fixed, every metric delta between the two runs is attributable to the **dataset change**.
+
+### 1.2 Improvement strategies applied (Project 2 brief)
+
+This report maps to the Project 2 improvement-strategy catalogue as follows. The Project 1 model (Batch 04) is the official baseline; every strategy below is realised in Batch 05.
+
+| Cat. | # | Strategy | How it is realised | Evidence section |
+|---|---|---|---|---|
+| A | 2 | Fine-tune from a pretrained checkpoint (not random init) | Both runs start from `yolo11n.pt` (COCO-pretrained) | §1.1 |
+| A | 4 | Early stopping + regularisation | `patience=15`, weight decay 5e-4 — early stop fired at epoch 87 in Batch 05 | §1.1, §3.1 |
+| B | 5 | Expand the dataset with images targeting underperforming classes | v2 dataset rebuilt with new HUB-campus captures explicitly aimed at the two worst Batch 04 classes (`whiteboard`, `projector`) | §2.1, §5.1 |
+| B | 7 | Re-annotate / correct labels to address annotation noise | v2 rebuild pruned empty-label scenes and re-checked boxes — empty labels fall in every split, box density rises at constant image count | §2.3 |
+| B | 8 | Improve class balance | v2 source pools sit between 238–249 across all four classes (vs. 200–848 in v1), so the cap-to-200 step no longer silently overweights `fire_extinguisher` | §2.1 |
+| C | 10 | Multi-scale coverage for objects at different sizes | New HUB captures were shot at varied subject distances on purpose, broadening the box-area distribution toward both larger and smaller boxes | §2.3 (box-area histogram) |
+| C | 11 | Post-processing improvement (confidence-threshold calibration) | A confidence-threshold slider is exposed in the live inference UI so operators can calibrate per deployment | inference UI |
+
+A backbone upgrade (Category A #1) is the subject of the companion three-way report (`docs/batch04_vs_batch05_vs_batch06/technical_report.md`, Batch 06 — YOLOv11s). Together the two reports exercise strategies in all three categories.
+
+### 1.3 Environment specification
+
+| Component | Version |
+|---|---|
+| OS | Windows 11 Home (10.0.26200) |
+| GPU | NVIDIA GeForce RTX 4060 |
+| CUDA | 12.6 |
+| cuDNN | 9.10.2 |
+| Python | 3.13.12 |
+| PyTorch | 2.11.0+cu126 |
+| Ultralytics | 8.3.253 |
+| Seed | 42 (deterministic) |
+
+Both runs are reproducible end-to-end from the notebooks in `notebooks/` against the dataset YAML at `data/dataset/data.yaml` using the versions above.
 
 ---
 
@@ -228,6 +281,34 @@ Project-custom confusion matrix view:
 
 ---
 
+## 4.6 Consolidated headline table (baseline vs. final)
+
+A single side-by-side view of the official Project 1 baseline (Batch 04) against the Project 2 final model (Batch 05) on the held-out test split:
+
+| Metric | Project 1 baseline (Batch 04) | Project 2 final (Batch 05) | Δ |
+|---|---:|---:|---:|
+| Precision (macro) | 1.0000 | 1.0000 | 0.0000 |
+| Recall (macro) | 0.8613 | **0.9804** | **+0.1191** |
+| mAP@0.5 | 0.9332 | **0.9876** | **+0.0544** |
+| mAP@0.5:0.95 | 0.7959 | **0.8728** | **+0.0769** |
+| `projector` mAP@0.5 | 0.8964 | **0.9950** | +0.0986 |
+| `whiteboard` mAP@0.5 | 0.8761 | **0.9750** | +0.0989 |
+| `fire_extinguisher` mAP@0.5 | 0.9780 | **0.9950** | +0.0170 |
+| `door_sign` mAP@0.5 | 0.9822 | **0.9855** | +0.0033 |
+
+### 4.7 Inference performance (runtime)
+
+A second axis of improvement that doesn't show up in accuracy tables: Project 2's deployment pipeline (ONNX export, opset 12, dynamic axes, GPU-backed runtime + confidence-threshold slider in the live UI) replaced Project 1's eager-PyTorch inference path. Same hardware (RTX 4060), same input size (640 × 640), YOLOv11n backbone.
+
+| Metric | Project 1 inference path (eager PyTorch) | Project 2 inference path (ONNX + GPU runtime) | Δ |
+|---|---:|---:|---:|
+| Per-frame model latency (YOLOv11n) | 100–120 ms | **15–20 ms** | **≈6–7× faster** |
+| Sustained end-to-end throughput | 4–5 FPS | **35–40 FPS** | **≈8× higher** |
+
+The throughput uplift outpaces the raw model-latency drop because the Project 1 path also paid for per-frame CPU↔GPU copies and webcam-sync stalls; the Project 2 ONNX path keeps the model resident on the GPU and decouples capture from inference. Batch 05's YOLOv11n backbone (2.6M params, 6.5 GFLOPs) is comfortably real-time on this pipeline with headroom to spare.
+
+---
+
 ## 5. Discussion
 
 ### 5.1 Why did Batch 05 win?
@@ -256,6 +337,31 @@ A higher train loss with a lower val loss is the canonical "more representative 
 - Higher-resolution training (`imgsz=896` or `imgsz=1024`) for small-object refinement.
 - Stronger geometric augmentation (`scale=0.75`, `degrees=10`) to teach the model tighter localisation under perspective.
 - A YOLOv11s upgrade (9.4M params) — the `variant_comparison.csv` slot is reserved for this experiment.
+
+---
+
+## 5.5 Error analysis with example images
+
+The remaining errors in Batch 05 are concentrated in two test-time patterns:
+
+1. **Small-pixel-area `door_sign` localisation drift.** Recall climbs to 0.9714 on the loose-IoU bucket but mAP@0.5:0.95 actually drops 3.7 pp vs. Batch 04. Inspection of the qualitative grid (figures/batch05/qualitative_predictions.png) shows correctly classified door signs whose predicted box is ~5–10 pixels off on the long edge. This is a localisation issue, not a recognition issue — visible in the confusion matrix (figures/batch05/confusion_matrix_normalized.png) where the off-diagonal mass is essentially zero.
+2. **`fire_extinguisher` tightness loss.** A −2.8 pp regression on mAP@0.5:0.95 with identical mAP@0.5. Same signature as door_sign: correct detection, slightly loose box. The v2 dataset has fewer fire_extinguisher captures than v1 (248 vs. 848), so the model sees a narrower range of `fire_extinguisher` poses than before.
+
+Representative figures (already embedded in §3.3 and §4.5):
+
+- `figures/batch04/qualitative_predictions.png` vs `figures/batch05/qualitative_predictions.png` — same scenes, tighter boxes in Batch 05 *except* on door signs.
+- `figures/batch04/confusion_matrix_normalized.png` vs `figures/batch05/confusion_matrix_normalized.png` — Batch 05's diagonal is brighter for `projector` and `whiteboard`; off-diagonal mass is unchanged.
+
+A follow-up batch should consider higher-resolution training (`imgsz=896`) for small-object refinement (covered in §5.4).
+
+## 5.6 Ethics statement
+
+All ethical constraints from Project 1 continue to apply and were re-checked for the v2 dataset:
+
+- **No identifiable faces.** All HUB-campus captures used for the v2 corpus were framed on infrastructure (projectors, whiteboards, fire extinguishers, door signs). Any incidental human presence was screened out during the v2 curation pass; no face is recognisable in any retained image.
+- **No license plates or vehicles.** Captures are interior classroom and corridor scenes; no parking areas were photographed.
+- **No personal data.** No names, ID cards, schedules, or contact information are visible in any image.
+- **Provenance.** Roboflow and Kaggle source images were used under their published open licences; HUB-campus captures were taken on-site by the author for the purpose of this project.
 
 ---
 
