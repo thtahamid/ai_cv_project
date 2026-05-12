@@ -1,0 +1,5 @@
+class,images,labels,info_json
+projector,200,200,True
+whiteboard,200,200,True
+fire_extinguisher,200,200,True
+door_sign,200,200,True

@@ -1,0 +1,20 @@
+{
+  "notebook": "03_data_preprocessing_split.ipynb",
+  "description": "Diagnostic health check of data/dataset/. No files modified.",
+  "outputs": {
+    "raw_data_head.csv": "First 5 rows of the box-level DataFrame.",
+    "class_distribution.csv": "Images per class per split.",
+    "class_distribution_bar.png": "Bar chart of class distribution (extracted from nb03 output).",
+    "box_area_histogram.png": "Density histogram of normalised box areas per class (extracted from nb03 output).",
+    "image_dimensions_scatter.png": "W vs H scatter coloured by split (extracted from nb03 output).",
+    "image_dim_stats.csv": "Descriptive statistics for image width and height.",
+    "dataset_health_summary.csv": "Per-split: images, empty labels, boxes, tiny boxes."
+  },
+  "health_checklist": {
+    "every_class_in_every_split": true,
+    "tiny_boxes_under_5pct": true,
+    "no_cross_split_leakage": true,
+    "tiny_box_count": 1,
+    "cross_split_leaked_files": 0
+  }
+}

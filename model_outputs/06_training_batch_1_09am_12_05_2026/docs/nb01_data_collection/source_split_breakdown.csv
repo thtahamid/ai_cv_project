@@ -1,0 +1,8 @@
+class,source_dataset,train
+door_sign,doorsign1,47
+door_sign,doorsign2,35
+door_sign,doorsign3,51
+door_sign,doorsign4,67
+fire_extinguisher,train,200
+projector,train,200
+whiteboard,train,200

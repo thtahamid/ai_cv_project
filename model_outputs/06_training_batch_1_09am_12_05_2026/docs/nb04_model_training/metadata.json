@@ -1,0 +1,25 @@
+{
+  "notebook": "04_model_training.ipynb",
+  "description": "Train YOLOv11n on the unified 800-image dataset.",
+  "outputs": {
+    "training_config.yaml": "Full Ultralytics training configuration (args.yaml).",
+    "training_results.csv": "Per-epoch training metrics for all epochs.",
+    "training_curves.png": "Train+val loss curves and val mAP curves.",
+    "training_summary.json": "Key stats: best epoch, best mAP, final losses.",
+    "label_distribution.jpg": "YOLO label distribution: class frequencies and box heatmaps.",
+    "sanity_predictions_grid.png": "Inline grid of sanity inference predictions.",
+    "sanity/": "Individual annotated JPEG predictions (sanity inference).",
+    "train_batches/": "Training batch mosaic visualisations.",
+    "val_batches/": "Validation batch ground-truth and prediction images."
+  },
+  "training_summary": {
+    "epochs_trained": 100,
+    "best_epoch": 83,
+    "best_val_mAP50": 0.982,
+    "best_val_mAP50_95": 0.8394,
+    "final_train_box_loss": 0.4186,
+    "final_train_cls_loss": 0.2298,
+    "final_val_box_loss": 0.6505,
+    "final_val_cls_loss": 0.3342
+  }
+}
