@@ -1,0 +1,1409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="dark light" />
+<meta name="description" content="Three-way comparative analysis: Batch 04 (YOLOv11n baseline) vs Batch 05 (YOLOv11n + improved dataset) vs Batch 06 (YOLOv11s + improved dataset)." />
+<title>Batch 04 vs 05 vs 06 · Campus Object Detection Report</title>
+<style>
+  /* ---------- Design tokens ---------- */
+  :root {
+    --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px;
+    --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-12: 48px; --s-16: 64px; --s-20: 80px;
+
+    --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-pill: 999px;
+
+    --fs-12: 12px; --fs-13: 13px; --fs-14: 14px; --fs-15: 15px; --fs-16: 16px;
+    --fs-18: 18px; --fs-22: 22px; --fs-28: 28px; --fs-36: 36px; --fs-48: 48px;
+
+    --bg-0: #060912;
+    --bg-1: #0c1224;
+    --bg-2: #131a33;
+    --bg-3: #1a2245;
+    --line: rgba(255,255,255,0.08);
+    --line-strong: rgba(255,255,255,0.14);
+
+    --ink-1: #f0f3ff;
+    --ink-2: #c5cce6;
+    --ink-3: #8b93b8;
+    --ink-4: #5b6489;
+
+    /* Batch identity colors */
+    --b04: #6aa7ff;
+    --b04-bg: rgba(106,167,255,0.10);
+    --b04-bd: rgba(106,167,255,0.34);
+    --b04-glow: rgba(106,167,255,0.22);
+
+    --b05: #ffb454;
+    --b05-bg: rgba(255,180,84,0.10);
+    --b05-bd: rgba(255,180,84,0.34);
+    --b05-glow: rgba(255,180,84,0.22);
+
+    --b06: #4ade80;
+    --b06-bg: rgba(74,222,128,0.10);
+    --b06-bd: rgba(74,222,128,0.36);
+    --b06-glow: rgba(74,222,128,0.22);
+
+    --good: #4ade80;
+    --good-bg: rgba(74,222,128,0.10);
+    --bad: #f87171;
+    --bad-bg: rgba(248,113,113,0.10);
+    --neutral: var(--ink-3);
+
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.25);
+    --shadow-md: 0 8px 24px rgba(0,0,0,0.32);
+    --shadow-lg: 0 24px 64px rgba(0,0,0,0.45);
+
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+    --container: 1200px;
+    --rail: 240px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: var(--s-16); }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(820px 480px at 92% -8%, rgba(74,222,128,0.10), transparent 60%),
+      radial-gradient(820px 480px at 50% -10%, rgba(255,180,84,0.10), transparent 60%),
+      radial-gradient(820px 480px at -10% 8%, rgba(106,167,255,0.10), transparent 60%),
+      linear-gradient(180deg, var(--bg-0) 0%, #04060f 100%);
+    color: var(--ink-1);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: var(--fs-16);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    min-height: 100dvh;
+  }
+  img { max-width: 100%; height: auto; display: block; }
+  a { color: var(--b04); text-decoration: none; transition: color .2s var(--ease-out); }
+  a:hover { color: var(--b06); }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--b06);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+  ::selection { background: var(--b06-bg); color: var(--ink-1); }
+
+  .skip {
+    position: absolute; left: 8px; top: -40px;
+    background: var(--bg-3); color: var(--ink-1);
+    padding: var(--s-2) var(--s-3); border-radius: var(--r-sm);
+    z-index: 1000; transition: top .2s var(--ease-out);
+  }
+  .skip:focus { top: 8px; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--b04), var(--b05), var(--b06));
+    transform-origin: 0 50%;
+    transform: scaleX(var(--p, 0));
+    z-index: 200;
+    transition: transform .08s linear;
+  }
+
+  /* ---------- Layout ---------- */
+  .shell {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: var(--s-12) var(--s-6) var(--s-20);
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative;
+    padding: var(--s-12);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    background:
+      radial-gradient(520px 240px at 95% 0%, var(--b06-bg), transparent 70%),
+      radial-gradient(520px 240px at 50% 0%, var(--b05-bg), transparent 70%),
+      radial-gradient(520px 240px at 0% 100%, var(--b04-bg), transparent 70%),
+      linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+    overflow: hidden;
+  }
+  .hero::after {
+    content: "";
+    position: absolute; inset: -2px;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+      radial-gradient(700px 220px at 90% 0%, var(--b06-glow), transparent 60%),
+      radial-gradient(700px 220px at 50% 0%, var(--b05-glow), transparent 60%),
+      radial-gradient(700px 220px at 0% 100%, var(--b04-glow), transparent 60%);
+    opacity: .26;
+    mix-blend-mode: screen;
+  }
+  .crumbs {
+    position: relative;
+    display: flex; flex-wrap: wrap; gap: var(--s-2);
+    font-size: var(--fs-12);
+    color: var(--ink-3);
+    margin-bottom: var(--s-6);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .crumbs a { color: var(--ink-2); }
+  .crumbs a:hover { color: var(--b06); }
+  .crumbs .sep { color: var(--ink-4); }
+  .hero h1 {
+    position: relative;
+    margin: 0 0 var(--s-3);
+    font-size: clamp(28px, 4.4vw, 44px);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-weight: 800;
+  }
+  .hero h1 .tri-04 { color: var(--b04); }
+  .hero h1 .tri-05 { color: var(--b05); }
+  .hero h1 .tri-06 { color: var(--b06); }
+  .hero .sub {
+    position: relative;
+    margin: 0 0 var(--s-8);
+    color: var(--ink-2);
+    max-width: 78ch;
+  }
+  .pills {
+    position: relative;
+    display: flex; flex-wrap: wrap; gap: var(--s-2);
+    margin-bottom: var(--s-8);
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px var(--s-3);
+    border-radius: var(--r-pill);
+    font-size: var(--fs-12);
+    font-weight: 600;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.03);
+    color: var(--ink-2);
+    letter-spacing: .02em;
+  }
+  .pill .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .pill.b04 { border-color: var(--b04-bd); background: var(--b04-bg); color: var(--b04); }
+  .pill.b05 { border-color: var(--b05-bd); background: var(--b05-bg); color: var(--b05); }
+  .pill.b06 { border-color: var(--b06-bd); background: var(--b06-bg); color: var(--b06); }
+  .pill.b04 .dot { background: var(--b04); box-shadow: 0 0 8px var(--b04-glow); }
+  .pill.b05 .dot { background: var(--b05); box-shadow: 0 0 8px var(--b05-glow); }
+  .pill.b06 .dot { background: var(--b06); box-shadow: 0 0 8px var(--b06-glow); }
+
+  /* hero metric strip */
+  .metric-strip {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--s-3);
+  }
+  @media (max-width: 880px) { .metric-strip { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .metric-strip { grid-template-columns: 1fr 1fr; } }
+  .m-card {
+    padding: var(--s-5);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: rgba(255,255,255,0.025);
+    transition: transform .25s var(--ease-out), border-color .25s var(--ease-out);
+  }
+  .m-card:hover { transform: translateY(-2px); border-color: var(--line-strong); }
+  .m-card .l {
+    font-size: var(--fs-12); color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: .08em;
+    margin-bottom: var(--s-2);
+  }
+  .m-card .v {
+    font-variant-numeric: tabular-nums;
+    font-size: var(--fs-28); font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  .m-card .h {
+    font-size: var(--fs-12); color: var(--ink-3);
+    margin-top: var(--s-2);
+  }
+
+  /* ---------- Section scaffolding ---------- */
+  .sec { margin-top: var(--s-16); }
+  .sec > .lead {
+    display: flex; align-items: center; gap: var(--s-3);
+    font-size: var(--fs-12);
+    color: var(--ink-3);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: var(--s-3);
+  }
+  .sec > .lead::before {
+    content: ""; width: 24px; height: 2px;
+    background: linear-gradient(90deg, var(--b04), var(--b05), var(--b06));
+    border-radius: 2px;
+  }
+  .sec h2 {
+    margin: 0 0 var(--s-3);
+    font-size: clamp(22px, 2.4vw, 30px);
+    letter-spacing: -0.01em;
+    font-weight: 800;
+  }
+  .sec h3 { font-size: var(--fs-18); margin: var(--s-8) 0 var(--s-3); }
+  .sec h4 {
+    font-size: var(--fs-13); margin: var(--s-6) 0 var(--s-2);
+    color: var(--ink-3);
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .sec p { color: var(--ink-2); margin: var(--s-3) 0; }
+
+  /* ---------- Run cards row ---------- */
+  .runs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--s-4);
+  }
+  @media (max-width: 960px) { .runs { grid-template-columns: 1fr; } }
+  .run {
+    padding: var(--s-5);
+    border-radius: var(--r-lg);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.0));
+    transition: transform .25s var(--ease-out), border-color .25s var(--ease-out), box-shadow .25s var(--ease-out);
+  }
+  .run.b04 { border-color: var(--b04-bd); box-shadow: inset 0 0 0 1px rgba(106,167,255,0.06); }
+  .run.b05 { border-color: var(--b05-bd); box-shadow: inset 0 0 0 1px rgba(255,180,84,0.06); }
+  .run.b06 { border-color: var(--b06-bd); box-shadow: inset 0 0 0 1px rgba(74,222,128,0.06); }
+  .run:hover { transform: translateY(-3px); }
+  .run.b04:hover { box-shadow: 0 12px 32px var(--b04-glow); }
+  .run.b05:hover { box-shadow: 0 12px 32px var(--b05-glow); }
+  .run.b06:hover { box-shadow: 0 12px 32px var(--b06-glow); }
+  .run .tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: var(--fs-12);
+    font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: var(--r-pill);
+    border: 1px solid;
+  }
+  .run.b04 .tag { background: var(--b04-bg); border-color: var(--b04-bd); color: var(--b04); }
+  .run.b05 .tag { background: var(--b05-bg); border-color: var(--b05-bd); color: var(--b05); }
+  .run.b06 .tag { background: var(--b06-bg); border-color: var(--b06-bd); color: var(--b06); }
+  .run h3 { margin: var(--s-3) 0 var(--s-2); font-size: var(--fs-18); }
+  .run dl {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s-2) var(--s-4);
+    margin: var(--s-4) 0 0;
+    font-size: var(--fs-14);
+  }
+  .run dt { color: var(--ink-3); }
+  .run dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-1);
+    font-weight: 600;
+  }
+  .run .role {
+    margin-top: var(--s-4);
+    padding-top: var(--s-3);
+    border-top: 1px dashed var(--line);
+    color: var(--ink-2);
+    font-size: var(--fs-13);
+  }
+
+  /* ---------- Tables ---------- */
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: rgba(255,255,255,0.018);
+  }
+  table {
+    width: 100%; border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+    font-size: var(--fs-14);
+  }
+  th, td {
+    padding: var(--s-3) var(--s-4);
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  th {
+    font-size: var(--fs-12);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-3);
+    background: rgba(255,255,255,0.025);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  td.num, th.num { text-align: right; }
+  .tag-b04 { color: var(--b04); font-weight: 700; }
+  .tag-b05 { color: var(--b05); font-weight: 700; }
+  .tag-b06 { color: var(--b06); font-weight: 700; }
+  .pos { color: var(--good); font-weight: 700; }
+  .neg { color: var(--bad); font-weight: 700; }
+  .best {
+    background: rgba(74,222,128,0.06);
+  }
+  .best td { color: var(--ink-1); }
+  .ico-up::before { content: "▲ "; color: var(--good); }
+  .ico-dn::before { content: "▼ "; color: var(--bad); }
+
+  /* ---------- Figure galleries ---------- */
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--s-4);
+  }
+  @media (max-width: 980px) { .grid-3 { grid-template-columns: 1fr; } }
+  .fig {
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: var(--bg-1);
+    transition: transform .25s var(--ease-out), border-color .25s var(--ease-out), box-shadow .25s var(--ease-out);
+  }
+  .fig:hover { transform: translateY(-2px); border-color: var(--line-strong); box-shadow: var(--shadow-md); }
+  .fig img { width: 100%; height: auto; display: block; background: #0a0e1f; }
+  .fig-cap {
+    padding: var(--s-3) var(--s-4);
+    border-top: 1px solid var(--line);
+    font-size: var(--fs-13);
+    color: var(--ink-3);
+    display: flex; align-items: center; gap: var(--s-2);
+  }
+  .fig-cap .tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 2px 8px; border-radius: var(--r-pill);
+    font-size: var(--fs-12); font-weight: 700;
+    border: 1px solid;
+  }
+  .fig.b04 { border-top: 2px solid var(--b04); }
+  .fig.b05 { border-top: 2px solid var(--b05); }
+  .fig.b06 { border-top: 2px solid var(--b06); }
+  .fig.b04 .fig-cap .tag { background: var(--b04-bg); border-color: var(--b04-bd); color: var(--b04); }
+  .fig.b05 .fig-cap .tag { background: var(--b05-bg); border-color: var(--b05-bd); color: var(--b05); }
+  .fig.b06 .fig-cap .tag { background: var(--b06-bg); border-color: var(--b06-bd); color: var(--b06); }
+
+  /* ---------- Decomposition card ---------- */
+  .decomp {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--s-4);
+    margin-top: var(--s-4);
+  }
+  @media (max-width: 960px) { .decomp { grid-template-columns: 1fr; } }
+  .decomp .d-card {
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: var(--s-5);
+    background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0));
+    transition: transform .25s var(--ease-out), border-color .25s var(--ease-out);
+  }
+  .decomp .d-card:hover { transform: translateY(-2px); border-color: var(--line-strong); }
+  .decomp .d-card.dataset { border-color: var(--b05-bd); }
+  .decomp .d-card.model { border-color: var(--b06-bd); }
+  .decomp .d-card.combined { border-color: var(--b04-bd); }
+  .decomp .d-title {
+    font-size: var(--fs-13);
+    text-transform: uppercase; letter-spacing: .08em;
+    color: var(--ink-3);
+    margin: 0 0 var(--s-2);
+  }
+  .decomp .d-step {
+    font-size: var(--fs-13);
+    color: var(--ink-2);
+    margin: 0 0 var(--s-3);
+  }
+  .decomp .d-bar {
+    height: 8px; border-radius: var(--r-pill);
+    background: rgba(255,255,255,0.06);
+    overflow: hidden;
+    margin: var(--s-2) 0;
+  }
+  .decomp .d-bar > i {
+    display: block; height: 100%;
+    border-radius: var(--r-pill);
+    transition: width 1.1s var(--ease-out);
+    width: 0;
+  }
+  .decomp .dataset .d-bar i { background: linear-gradient(90deg, var(--b05), #ffd28a); }
+  .decomp .model .d-bar i { background: linear-gradient(90deg, var(--b06), #8af0a8); }
+  .decomp .combined .d-bar i { background: linear-gradient(90deg, var(--b04), #a0c8ff); }
+  .decomp .d-row {
+    display: flex; justify-content: space-between;
+    font-size: var(--fs-13);
+    color: var(--ink-2);
+    margin-bottom: var(--s-1);
+  }
+  .decomp .d-row .v { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--ink-1); }
+
+  /* ---------- Strengths / takeaways ---------- */
+  .keys {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--s-4);
+  }
+  @media (max-width: 960px) { .keys { grid-template-columns: 1fr; } }
+  .key {
+    padding: var(--s-5);
+    border-radius: var(--r-lg);
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.025);
+  }
+  .key.b04 { border-color: var(--b04-bd); }
+  .key.b05 { border-color: var(--b05-bd); }
+  .key.b06 { border-color: var(--b06-bd); }
+  .key h4 {
+    margin: 0 0 var(--s-2);
+    color: var(--ink-1);
+    text-transform: none; letter-spacing: 0;
+    font-size: var(--fs-15);
+  }
+  .key.b04 h4::before { content: "● "; color: var(--b04); }
+  .key.b05 h4::before { content: "● "; color: var(--b05); }
+  .key.b06 h4::before { content: "● "; color: var(--b06); }
+  .key p { color: var(--ink-2); font-size: var(--fs-14); margin: 0; }
+
+  /* ---------- Collapsible details ---------- */
+  details.col {
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: rgba(255,255,255,0.02);
+    margin-bottom: var(--s-3);
+    overflow: hidden;
+  }
+  details.col[open] { border-color: var(--line-strong); }
+  details.col summary {
+    list-style: none;
+    padding: var(--s-4) var(--s-5);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
+    font-weight: 700;
+    color: var(--ink-1);
+    transition: background .2s var(--ease-out);
+  }
+  details.col summary::-webkit-details-marker { display: none; }
+  details.col summary:hover { background: rgba(255,255,255,0.03); }
+  details.col summary .ch {
+    transition: transform .25s var(--ease-out);
+    color: var(--ink-3);
+  }
+  details.col[open] summary .ch { transform: rotate(90deg); color: var(--b06); }
+  details.col .inner { padding: 0 var(--s-5) var(--s-5); }
+
+  /* ---------- Code block ---------- */
+  pre {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: var(--s-4);
+    overflow-x: auto;
+    font-size: var(--fs-13);
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    color: var(--ink-1);
+  }
+  pre code { color: inherit; }
+
+  /* ---------- Footer ---------- */
+  footer {
+    margin-top: var(--s-16);
+    padding-top: var(--s-6);
+    border-top: 1px solid var(--line);
+    color: var(--ink-3);
+    font-size: var(--fs-13);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--s-3);
+  }
+  footer .right { display: flex; gap: var(--s-2); flex-wrap: wrap; }
+
+  /* ---------- Reveal animation ---------- */
+  .reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity .55s var(--ease-out), transform .55s var(--ease-out);
+  }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1 !important; transform: none !important; transition: none; }
+    .progress { transition: none; }
+    .m-card, .run, .fig, .d-card, .key { transition: none; }
+    .decomp .d-bar > i { transition: none; }
+  }
+
+  /* ---------- Mobile niceties ---------- */
+  @media (max-width: 720px) {
+    .shell { padding: var(--s-8) var(--s-4) var(--s-16); }
+    .hero { padding: var(--s-6); }
+    .sec { margin-top: var(--s-12); }
+    th, td { padding: var(--s-2) var(--s-3); }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<div class="shell" id="main">
+
+  <!-- ───────────────────── HERO ───────────────────── -->
+  <header class="hero">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="../index.html">Home</a>
+      <span class="sep">/</span>
+      <span>Comparative analysis</span>
+      <span class="sep">/</span>
+      <span>Batch 04 vs 05 vs 06</span>
+    </nav>
+
+    <h1>
+      <span class="tri-04">Batch 04</span>
+      <span style="color: var(--ink-3); font-weight: 400;">vs</span>
+      <span class="tri-05">Batch 05</span>
+      <span style="color: var(--ink-3); font-weight: 400;">vs</span>
+      <span class="tri-06">Batch 06</span>
+    </h1>
+
+    <p class="sub">
+      Three single-variable training runs of the campus infrastructure detector,
+      decomposing the contribution of each change. <strong>04</strong> is the
+      YOLOv11n baseline. <strong>05</strong> swaps in the updated custom dataset
+      (dataset uplift). <strong>06</strong> upgrades the backbone to YOLOv11s
+      while holding that dataset fixed (model uplift).
+    </p>
+
+    <div class="pills" aria-label="Run identifiers">
+      <span class="pill b04"><span class="dot"></span>Batch 04 · YOLOv11n · v1 dataset · 100 ep</span>
+      <span class="pill b05"><span class="dot"></span>Batch 05 · YOLOv11n · v2 dataset · 87 ep (ES)</span>
+      <span class="pill b06"><span class="dot"></span>Batch 06 · YOLOv11s · v2 dataset · 100 ep</span>
+    </div>
+
+    <div class="metric-strip" role="list" aria-label="Headline test-set metrics">
+      <div class="m-card" role="listitem">
+        <div class="l">Test mAP@0.5 (best)</div>
+        <div class="v" style="color: var(--b05);">0.9876</div>
+        <div class="h">Batch 05 · +5.4 pp vs Batch 04</div>
+      </div>
+      <div class="m-card" role="listitem">
+        <div class="l">Test mAP@0.5:0.95 (best)</div>
+        <div class="v" style="color: var(--b06);">0.8808</div>
+        <div class="h">Batch 06 · +8.5 pp vs Batch 04</div>
+      </div>
+      <div class="m-card" role="listitem">
+        <div class="l">Test recall (macro, best)</div>
+        <div class="v" style="color: var(--b05);">0.9804</div>
+        <div class="h">Batch 05 · +11.9 pp vs Batch 04</div>
+      </div>
+      <div class="m-card" role="listitem">
+        <div class="l">Highest-leverage change</div>
+        <div class="v" style="color: var(--b05);">Dataset</div>
+        <div class="h">~85–90 % of cumulative gain</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ───────────────────── ABSTRACT ───────────────────── -->
+  <section class="sec reveal" id="abstract">
+    <div class="lead">Abstract</div>
+    <h2>What changed, and what it bought us</h2>
+    <p>
+      This report contrasts three consecutive training runs of the campus
+      infrastructure detector (<code>projector</code>, <code>whiteboard</code>,
+      <code>fire_extinguisher</code>, <code>door_sign</code>) and isolates the
+      contribution of each change. <span class="tag-b04">Batch 04</span> is the
+      baseline: YOLOv11n on the original aggregated dataset.
+      <span class="tag-b05">Batch 05</span> holds the model fixed and swaps in an
+      improved custom dataset with rebalanced sourcing, denser annotation, and
+      more in-house captures — the <em>dataset uplift</em>.
+      <span class="tag-b06">Batch 06</span> holds that improved dataset fixed and
+      swaps the backbone from YOLOv11n (2.6M params) to YOLOv11s (9.4M params) —
+      the <em>model uplift</em>.
+    </p>
+    <p>
+      The headline finding is that <strong>the dataset change moved the needle far
+      more than the model upgrade</strong>. Going from Batch 04 → 05, test mAP@0.5
+      jumps <span class="pos">+5.4 pp</span> and macro recall jumps
+      <span class="pos">+11.9 pp</span> at unchanged precision (1.000). Going from
+      Batch 05 → 06, test mAP@0.5 actually dips slightly
+      (<span class="neg">−0.8 pp</span>) but the stricter mAP@0.5:0.95 climbs
+      <span class="pos">+0.8 pp</span> and the <code>whiteboard</code> class
+      tightens dramatically (mAP@0.5:0.95 <span class="pos">+3.1 pp</span>).
+      Batch 06 also pays a small precision cost on <code>door_sign</code>
+      (1.0000 → 0.9697) — the first non-perfect precision in the project's
+      history.
+    </p>
+  </section>
+
+  <!-- ───────────────────── RUN CARDS ───────────────────── -->
+  <section class="sec reveal" id="runs">
+    <div class="lead">01 · Runs at a glance</div>
+    <h2>Three single-variable steps</h2>
+    <p>
+      Each batch changes exactly one variable from the previous one. Every other
+      hyper-parameter (lr, batch, schedule, augmentation, seed) is held fixed.
+    </p>
+    <div class="runs">
+      <article class="run b04" aria-label="Batch 04">
+        <span class="tag">Baseline</span>
+        <h3>Batch 04</h3>
+        <p style="color: var(--ink-2); margin: var(--s-2) 0 0; font-size: var(--fs-14);">
+          YOLOv11n · v1 dataset
+        </p>
+        <dl>
+          <dt>Backbone</dt><dd>yolo11n.pt</dd>
+          <dt>Params</dt><dd>2.6 M</dd>
+          <dt>Dataset</dt><dd>v1 (original)</dd>
+          <dt>Train images</dt><dd>560</dd>
+          <dt>Epochs</dt><dd>100 / 100</dd>
+          <dt>Best epoch</dt><dd>60</dd>
+        </dl>
+        <p class="role">Establishes the project baseline. Perfectly balanced 800-image v1 dataset; no early stop.</p>
+      </article>
+      <article class="run b05" aria-label="Batch 05">
+        <span class="tag">Dataset uplift</span>
+        <h3>Batch 05</h3>
+        <p style="color: var(--ink-2); margin: var(--s-2) 0 0; font-size: var(--fs-14);">
+          YOLOv11n · v2 dataset
+        </p>
+        <dl>
+          <dt>Backbone</dt><dd>yolo11n.pt</dd>
+          <dt>Params</dt><dd>2.6 M</dd>
+          <dt>Dataset</dt><dd>v2 (updated)</dd>
+          <dt>Train images</dt><dd>560</dd>
+          <dt>Epochs</dt><dd>87 / 100 (ES)</dd>
+          <dt>Best epoch</dt><dd>70</dd>
+        </dl>
+        <p class="role">Same recipe, new data. Rebalanced sources, denser annotation (+15.4 % more boxes), more in-house captures.</p>
+      </article>
+      <article class="run b06" aria-label="Batch 06">
+        <span class="tag">Model uplift</span>
+        <h3>Batch 06</h3>
+        <p style="color: var(--ink-2); margin: var(--s-2) 0 0; font-size: var(--fs-14);">
+          YOLOv11s · v2 dataset
+        </p>
+        <dl>
+          <dt>Backbone</dt><dd>yolo11s.pt</dd>
+          <dt>Params</dt><dd>9.4 M</dd>
+          <dt>Dataset</dt><dd>v2 (same as 05)</dd>
+          <dt>Train images</dt><dd>560</dd>
+          <dt>Epochs</dt><dd>100 / 100</dd>
+          <dt>Best epoch</dt><dd>83</dd>
+        </dl>
+        <p class="role">Same dataset, bigger model. 3.6× parameters and 3.3× GFLOPs over Batches 04 and 05.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ───────────────────── PIPELINE / SETUP ───────────────────── -->
+  <section class="sec reveal" id="setup">
+    <div class="lead">02 · Experimental setup</div>
+    <h2>Shared pipeline &amp; hyperparameters</h2>
+    <p>
+      All three runs flow through the same notebook pipeline
+      (<code>nb01_data_collection</code> → <code>nb05_model_evaluation</code>)
+      on the same hardware (CUDA · RTX 4060) and with identical hyperparameters,
+      apart from the two variables under study.
+    </p>
+
+    <details class="col" open>
+      <summary>Shared hyperparameters <span class="ch">▶</span></summary>
+      <div class="inner">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Hyper-parameter</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td>Image size</td><td>640 × 640</td></tr>
+              <tr><td>Batch</td><td>16</td></tr>
+              <tr><td>Optimiser</td><td>SGD · lr0=0.01 · lrf=0.01 · momentum 0.937 · wd 5e-4</td></tr>
+              <tr><td>Epochs</td><td>100 (early stop, patience = 15)</td></tr>
+              <tr><td>Augmentation</td><td>mosaic 1.0 (closed last 10 ep), HSV-S 0.7, HSV-V 0.4, fliplr 0.5, randaugment, erasing 0.4</td></tr>
+              <tr><td>Loss weights</td><td>box 7.5 · cls 0.5 · dfl 1.5</td></tr>
+              <tr><td>Seed</td><td>42 (deterministic)</td></tr>
+              <tr><td>AMP</td><td>enabled (FP16)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+
+    <details class="col">
+      <summary>What changes between batches <span class="ch">▶</span></summary>
+      <div class="inner">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Variable</th><th>Batch 04</th><th>Batch 05</th><th>Batch 06</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Backbone</td>
+                <td><span class="tag-b04">yolo11n.pt · 2.6 M · 6.5 GFLOPs</span></td>
+                <td><span class="tag-b05">yolo11n.pt · 2.6 M · 6.5 GFLOPs</span></td>
+                <td><span class="tag-b06">yolo11s.pt · 9.4 M · 21.6 GFLOPs</span></td>
+              </tr>
+              <tr>
+                <td>Dataset version</td>
+                <td><span class="tag-b04">v1 (original aggregated)</span></td>
+                <td><span class="tag-b05">v2 (updated custom)</span></td>
+                <td><span class="tag-b06">v2 (same as Batch 05)</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top: var(--s-4);">
+          Two single-variable steps. <strong>Batch 04 → 05</strong> isolates
+          dataset quality. <strong>Batch 05 → 06</strong> isolates model capacity.
+        </p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ───────────────────── DATASET ───────────────────── -->
+  <section class="sec reveal" id="dataset">
+    <div class="lead">03 · Dataset comparison</div>
+    <h2>v1 (Batch 04) vs v2 (Batches 05 + 06)</h2>
+    <p>
+      Batches 05 and 06 share the same dataset, so the dataset-level deltas are
+      between Batch 04 (v1) and Batches 05/06 (v2).
+    </p>
+
+    <h3>Source availability (before capping)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Class</th><th class="num">v1 available pairs</th><th class="num">v2 available pairs</th><th class="num">Δ</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>projector</td><td class="num">319</td><td class="num">249</td><td class="num neg">−70</td></tr>
+          <tr><td>whiteboard</td><td class="num">200</td><td class="num">238</td><td class="num pos">+38</td></tr>
+          <tr><td>fire_extinguisher</td><td class="num">848</td><td class="num">248</td><td class="num neg">−600</td></tr>
+          <tr><td>door_sign</td><td class="num">240</td><td class="num">244</td><td class="num pos">+4</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Stratified split distribution</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Split</th>
+            <th>v1 (proj / wb / fe / ds)</th>
+            <th>v2 (proj / wb / fe / ds)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>train</td><td>140 / 140 / 140 / 140</td><td><strong>123</strong> / 140 / 140 / 140</td></tr>
+          <tr><td>val</td><td>40 / 40 / 40 / 40</td><td><strong>36</strong> / 40 / 40 / 40</td></tr>
+          <tr><td>test</td><td>20 / 20 / 20 / 20</td><td><strong>18</strong> / 20 / 20 / 20</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Class distribution</h3>
+    <div class="grid-3">
+      <figure class="fig b04">
+        <img loading="lazy" alt="Batch 04 class distribution bar chart" src="figures/batch04/class_distribution_bar.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 04</span> Class distribution · v1 (perfectly balanced 200/200/200/200)</figcaption>
+      </figure>
+      <figure class="fig b05">
+        <img loading="lazy" alt="Batch 05 class distribution bar chart" src="figures/batch05/class_distribution_bar.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 05</span> Class distribution · v2 (179 projectors, 200 each elsewhere)</figcaption>
+      </figure>
+      <figure class="fig b06">
+        <img loading="lazy" alt="Batch 06 class distribution bar chart" src="figures/batch06/class_distribution_bar.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 06</span> Class distribution · same v2 as Batch 05</figcaption>
+      </figure>
+    </div>
+
+    <h3>Label density &amp; geometry</h3>
+    <p>
+      The v2 dataset is meaningfully <strong>denser in bounding boxes</strong> at
+      constant image count. Empty-label images drop across every split — the
+      curator pruned scenes with no visible target and added multi-instance
+      scenes.
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Metric</th><th class="num">v1 (Batch 04)</th><th class="num">v2 (Batches 05 + 06)</th><th class="num">Δ</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>train boxes</td><td class="num">695</td><td class="num"><strong>810</strong></td><td class="num pos">+115</td></tr>
+          <tr><td>train empty labels</td><td class="num">25</td><td class="num"><strong>17</strong></td><td class="num pos">−8</td></tr>
+          <tr><td>val boxes</td><td class="num">200</td><td class="num"><strong>229</strong></td><td class="num pos">+29</td></tr>
+          <tr><td>val empty labels</td><td class="num">7</td><td class="num"><strong>4</strong></td><td class="num pos">−3</td></tr>
+          <tr><td>test boxes</td><td class="num">102</td><td class="num"><strong>112</strong></td><td class="num pos">+10</td></tr>
+          <tr><td>test empty labels</td><td class="num">3</td><td class="num"><strong>2</strong></td><td class="num pos">−1</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Box-area histogram</h3>
+    <div class="grid-3">
+      <figure class="fig b04">
+        <img loading="lazy" alt="Batch 04 box-area histogram" src="figures/batch04/box_area_histogram.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 04</span> Box-area distribution · v1</figcaption>
+      </figure>
+      <figure class="fig b05">
+        <img loading="lazy" alt="Batch 05 box-area histogram" src="figures/batch05/box_area_histogram.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 05</span> Box-area distribution · v2</figcaption>
+      </figure>
+      <figure class="fig b06">
+        <img loading="lazy" alt="Batch 06 box-area histogram" src="figures/batch06/box_area_histogram.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 06</span> Box-area distribution · v2</figcaption>
+      </figure>
+    </div>
+
+    <h3>Image-dimension scatter</h3>
+    <div class="grid-3">
+      <figure class="fig b04">
+        <img loading="lazy" alt="Batch 04 image dimensions scatter" src="figures/batch04/image_dimensions_scatter.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 04</span> Image dimensions · v1</figcaption>
+      </figure>
+      <figure class="fig b05">
+        <img loading="lazy" alt="Batch 05 image dimensions scatter" src="figures/batch05/image_dimensions_scatter.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 05</span> Image dimensions · v2</figcaption>
+      </figure>
+      <figure class="fig b06">
+        <img loading="lazy" alt="Batch 06 image dimensions scatter" src="figures/batch06/image_dimensions_scatter.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 06</span> Image dimensions · v2</figcaption>
+      </figure>
+    </div>
+
+    <h3>Label distribution (per-class XY centres)</h3>
+    <div class="grid-3">
+      <figure class="fig b04">
+        <img loading="lazy" alt="Batch 04 label distribution" src="figures/batch04/label_distribution.jpg" />
+        <figcaption class="fig-cap"><span class="tag">Batch 04</span> Class frequencies &amp; XY heatmaps</figcaption>
+      </figure>
+      <figure class="fig b05">
+        <img loading="lazy" alt="Batch 05 label distribution" src="figures/batch05/label_distribution.jpg" />
+        <figcaption class="fig-cap"><span class="tag">Batch 05</span> Class frequencies &amp; XY heatmaps</figcaption>
+      </figure>
+      <figure class="fig b06">
+        <img loading="lazy" alt="Batch 06 label distribution" src="figures/batch06/label_distribution.jpg" />
+        <figcaption class="fig-cap"><span class="tag">Batch 06</span> Class frequencies &amp; XY heatmaps</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ───────────────────── TRAINING DYNAMICS ───────────────────── -->
+  <section class="sec reveal" id="training">
+    <div class="lead">04 · Training dynamics</div>
+    <h2>How the three runs converged</h2>
+
+    <h3>Best-epoch summary</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th class="num"><span class="tag-b04">Batch 04</span></th>
+            <th class="num"><span class="tag-b05">Batch 05</span></th>
+            <th class="num"><span class="tag-b06">Batch 06</span></th>
+            <th class="num">Δ (05−04)</th>
+            <th class="num">Δ (06−05)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Epochs trained</td><td class="num">100</td><td class="num"><strong>87</strong> (ES)</td><td class="num">100</td><td class="num neg">−13</td><td class="num">+13</td></tr>
+          <tr><td>Best epoch</td><td class="num">60</td><td class="num">70</td><td class="num"><strong>83</strong></td><td class="num">+10</td><td class="num">+13</td></tr>
+          <tr class="best"><td>Best val mAP@0.5</td><td class="num">0.9489</td><td class="num"><strong>0.9874</strong></td><td class="num">0.9820</td><td class="num pos">+0.0385</td><td class="num neg">−0.0054</td></tr>
+          <tr class="best"><td>Best val mAP@0.5:0.95</td><td class="num">0.7251</td><td class="num">0.8134</td><td class="num"><strong>0.8394</strong></td><td class="num pos">+0.0883</td><td class="num pos">+0.0260</td></tr>
+          <tr><td>Final train box-loss</td><td class="num">0.5109</td><td class="num">0.5632</td><td class="num"><strong>0.4186</strong></td><td class="num neg">+0.0523</td><td class="num pos">−0.1446</td></tr>
+          <tr><td>Final train cls-loss</td><td class="num">0.3839</td><td class="num">0.3976</td><td class="num"><strong>0.2298</strong></td><td class="num neg">+0.0137</td><td class="num pos">−0.1678</td></tr>
+          <tr><td>Final val box-loss</td><td class="num">0.8409</td><td class="num">0.6743</td><td class="num"><strong>0.6505</strong></td><td class="num pos">−0.1666</td><td class="num pos">−0.0238</td></tr>
+          <tr><td>Final val cls-loss</td><td class="num">0.5516</td><td class="num">0.4186</td><td class="num"><strong>0.3342</strong></td><td class="num pos">−0.1330</td><td class="num pos">−0.0844</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      <strong>04 → 05 (dataset uplift)</strong>: train losses tick <em>up</em> a hair
+      (v2 is harder to memorise — more multi-instance scenes) while val losses
+      fall sharply — the model is <em>generalising</em> better.
+      <strong>05 → 06 (model uplift)</strong>: every loss drops, including the
+      training losses, because the larger backbone has more capacity to fit the
+      same data. Val mAP@0.5 dipping 0.5 pp despite the loss drop tells us the
+      loose-IoU bucket was already saturated; the extra capacity went into
+      refining localisation (visible in the stricter mAP@0.5:0.95 jump).
+    </p>
+
+    <h3>Training curves</h3>
+    <div class="grid-3">
+      <figure class="fig b04">
+        <img loading="lazy" alt="Batch 04 training curves" src="figures/batch04/training_curves.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 04</span> Train+val loss · val mAP curves</figcaption>
+      </figure>
+      <figure class="fig b05">
+        <img loading="lazy" alt="Batch 05 training curves" src="figures/batch05/training_curves.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 05</span> Train+val loss · val mAP curves</figcaption>
+      </figure>
+      <figure class="fig b06">
+        <img loading="lazy" alt="Batch 06 training curves" src="figures/batch06/training_curves.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 06</span> Train+val loss · val mAP curves</figcaption>
+      </figure>
+    </div>
+
+    <h3>Sanity predictions (training-time)</h3>
+    <div class="grid-3">
+      <figure class="fig b04">
+        <img loading="lazy" alt="Batch 04 sanity prediction grid" src="figures/batch04/sanity_predictions_grid.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 04</span> Sanity inference grid</figcaption>
+      </figure>
+      <figure class="fig b05">
+        <img loading="lazy" alt="Batch 05 sanity prediction grid" src="figures/batch05/sanity_predictions_grid.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 05</span> Sanity inference grid</figcaption>
+      </figure>
+      <figure class="fig b06">
+        <img loading="lazy" alt="Batch 06 sanity prediction grid" src="figures/batch06/sanity_predictions_grid.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 06</span> Sanity inference grid</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ───────────────────── TEST EVAL ───────────────────── -->
+  <section class="sec reveal" id="results">
+    <div class="lead">05 · Test-set evaluation</div>
+    <h2>Held-out 80-image test split</h2>
+
+    <h3>Overall metrics</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th class="num"><span class="tag-b04">Batch 04</span></th>
+            <th class="num"><span class="tag-b05">Batch 05</span></th>
+            <th class="num"><span class="tag-b06">Batch 06</span></th>
+            <th class="num">Δ (05−04)</th>
+            <th class="num">Δ (06−05)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="best"><td>mAP@0.5</td><td class="num">0.9332</td><td class="num"><strong>0.9876</strong></td><td class="num">0.9792</td><td class="num pos">+0.0544</td><td class="num neg">−0.0084</td></tr>
+          <tr class="best"><td>mAP@0.5:0.95</td><td class="num">0.7959</td><td class="num">0.8728</td><td class="num"><strong>0.8808</strong></td><td class="num pos">+0.0769</td><td class="num pos">+0.0080</td></tr>
+          <tr><td>Precision (macro)</td><td class="num"><strong>1.0000</strong></td><td class="num"><strong>1.0000</strong></td><td class="num">0.9924</td><td class="num">0.0000</td><td class="num neg">−0.0076</td></tr>
+          <tr class="best"><td>Recall (macro)</td><td class="num">0.8613</td><td class="num"><strong>0.9804</strong></td><td class="num">0.9647</td><td class="num pos">+0.1191</td><td class="num neg">−0.0157</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Per-class metrics</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Class</th>
+            <th>Metric</th>
+            <th class="num"><span class="tag-b04">04</span></th>
+            <th class="num"><span class="tag-b05">05</span></th>
+            <th class="num"><span class="tag-b06">06</span></th>
+            <th>Best</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td rowspan="4">projector</td><td>precision</td><td class="num">1.0000</td><td class="num">1.0000</td><td class="num">1.0000</td><td>tie</td></tr>
+          <tr><td>recall</td><td class="num">0.8036</td><td class="num"><strong>1.0000</strong></td><td class="num">0.9444</td><td><span class="tag-b05">05</span></td></tr>
+          <tr><td>mAP@0.5</td><td class="num">0.8964</td><td class="num"><strong>0.9950</strong></td><td class="num">0.9720</td><td><span class="tag-b05">05</span></td></tr>
+          <tr><td>mAP@0.5:0.95</td><td class="num">0.7290</td><td class="num">0.9377</td><td class="num"><strong>0.9398</strong></td><td><span class="tag-b06">06</span></td></tr>
+
+          <tr><td rowspan="4">whiteboard</td><td>precision</td><td class="num">1.0000</td><td class="num">1.0000</td><td class="num">1.0000</td><td>tie</td></tr>
+          <tr><td>recall</td><td class="num">0.7625</td><td class="num">0.9500</td><td class="num"><strong>1.0000</strong></td><td><span class="tag-b06">06</span></td></tr>
+          <tr><td>mAP@0.5</td><td class="num">0.8761</td><td class="num">0.9750</td><td class="num"><strong>0.9950</strong></td><td><span class="tag-b06">06</span></td></tr>
+          <tr><td>mAP@0.5:0.95</td><td class="num">0.7767</td><td class="num">0.9413</td><td class="num"><strong>0.9724</strong></td><td><span class="tag-b06">06</span></td></tr>
+
+          <tr><td rowspan="4">fire_extinguisher</td><td>precision</td><td class="num">1.0000</td><td class="num">1.0000</td><td class="num">1.0000</td><td>tie</td></tr>
+          <tr><td>recall</td><td class="num">0.9565</td><td class="num"><strong>1.0000</strong></td><td class="num"><strong>1.0000</strong></td><td>05 / 06</td></tr>
+          <tr><td>mAP@0.5</td><td class="num">0.9780</td><td class="num"><strong>0.9950</strong></td><td class="num"><strong>0.9950</strong></td><td>05 / 06</td></tr>
+          <tr><td>mAP@0.5:0.95</td><td class="num"><strong>0.9045</strong></td><td class="num">0.8762</td><td class="num">0.8706</td><td><span class="tag-b04">04</span></td></tr>
+
+          <tr><td rowspan="4">door_sign</td><td>precision</td><td class="num"><strong>1.0000</strong></td><td class="num"><strong>1.0000</strong></td><td class="num">0.9697</td><td>04 / 05</td></tr>
+          <tr><td>recall</td><td class="num">0.9224</td><td class="num"><strong>0.9714</strong></td><td class="num">0.9143</td><td><span class="tag-b05">05</span></td></tr>
+          <tr><td>mAP@0.5</td><td class="num">0.9822</td><td class="num"><strong>0.9855</strong></td><td class="num">0.9548</td><td><span class="tag-b05">05</span></td></tr>
+          <tr><td>mAP@0.5:0.95</td><td class="num"><strong>0.7733</strong></td><td class="num">0.7359</td><td class="num">0.7403</td><td><span class="tag-b04">04</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      Two clear class-level stories: <strong>whiteboard</strong> is the headline
+      winner of Batch 06 — recall is now perfect (1.0000), mAP@0.5 saturates at
+      0.995, and mAP@0.5:0.95 jumps <span class="pos">+3.1 pp</span> — the
+      largest single per-class gain anywhere in this comparison. Conversely,
+      <strong>door_sign</strong> regressed in Batch 06: precision broke its
+      perfect streak (0.9697) and recall fell <span class="neg">−5.7 pp</span>.
+      This is the first time any class has lost ground when a single variable
+      was changed.
+    </p>
+
+    <h3>Precision–Recall and F1 curves</h3>
+    <div class="grid-3">
+      <figure class="fig b04">
+        <img loading="lazy" alt="Batch 04 PR curve" src="figures/batch04/BoxPR_curve.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 04</span> Per-class PR curve</figcaption>
+      </figure>
+      <figure class="fig b05">
+        <img loading="lazy" alt="Batch 05 PR curve" src="figures/batch05/BoxPR_curve.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 05</span> Per-class PR curve</figcaption>
+      </figure>
+      <figure class="fig b06">
+        <img loading="lazy" alt="Batch 06 PR curve" src="figures/batch06/BoxPR_curve.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 06</span> Per-class PR curve</figcaption>
+      </figure>
+    </div>
+    <div class="grid-3">
+      <figure class="fig b04">
+        <img loading="lazy" alt="Batch 04 F1 curve" src="figures/batch04/BoxF1_curve.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 04</span> F1 vs confidence</figcaption>
+      </figure>
+      <figure class="fig b05">
+        <img loading="lazy" alt="Batch 05 F1 curve" src="figures/batch05/BoxF1_curve.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 05</span> F1 vs confidence</figcaption>
+      </figure>
+      <figure class="fig b06">
+        <img loading="lazy" alt="Batch 06 F1 curve" src="figures/batch06/BoxF1_curve.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 06</span> F1 vs confidence</figcaption>
+      </figure>
+    </div>
+
+    <h3>Confusion matrices</h3>
+    <h4>Normalised (Ultralytics)</h4>
+    <div class="grid-3">
+      <figure class="fig b04">
+        <img loading="lazy" alt="Batch 04 normalised confusion matrix" src="figures/batch04/confusion_matrix_normalized.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 04</span> Column-normalised confusion matrix</figcaption>
+      </figure>
+      <figure class="fig b05">
+        <img loading="lazy" alt="Batch 05 normalised confusion matrix" src="figures/batch05/confusion_matrix_normalized.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 05</span> Column-normalised confusion matrix</figcaption>
+      </figure>
+      <figure class="fig b06">
+        <img loading="lazy" alt="Batch 06 normalised confusion matrix" src="figures/batch06/confusion_matrix_normalized.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 06</span> Column-normalised confusion matrix</figcaption>
+      </figure>
+    </div>
+    <h4>Custom dual-panel view</h4>
+    <div class="grid-3">
+      <figure class="fig b04">
+        <img loading="lazy" alt="Batch 04 custom confusion matrix" src="figures/batch04/confusion_matrix_custom.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 04</span> Counts + normalised</figcaption>
+      </figure>
+      <figure class="fig b05">
+        <img loading="lazy" alt="Batch 05 custom confusion matrix" src="figures/batch05/confusion_matrix_custom.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 05</span> Counts + normalised</figcaption>
+      </figure>
+      <figure class="fig b06">
+        <img loading="lazy" alt="Batch 06 custom confusion matrix" src="figures/batch06/confusion_matrix_custom.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 06</span> Counts + normalised</figcaption>
+      </figure>
+    </div>
+
+    <h3>Qualitative predictions</h3>
+    <div class="grid-3">
+      <figure class="fig b04">
+        <img loading="lazy" alt="Batch 04 qualitative predictions" src="figures/batch04/qualitative_predictions.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 04</span> 8 random test images</figcaption>
+      </figure>
+      <figure class="fig b05">
+        <img loading="lazy" alt="Batch 05 qualitative predictions" src="figures/batch05/qualitative_predictions.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 05</span> 8 random test images</figcaption>
+      </figure>
+      <figure class="fig b06">
+        <img loading="lazy" alt="Batch 06 qualitative predictions" src="figures/batch06/qualitative_predictions.png" />
+        <figcaption class="fig-cap"><span class="tag">Batch 06</span> 8 random test images</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ───────────────────── DECOMPOSITION ───────────────────── -->
+  <section class="sec reveal" id="decomp">
+    <div class="lead">06 · Decomposing the wins</div>
+    <h2>Where did each gain come from?</h2>
+    <p>
+      Because every step is a single-variable change, each gain is attributable
+      either to <span class="tag-b05">dataset</span> (Batch 04 → 05) or
+      <span class="tag-b06">model</span> (Batch 05 → 06). The combined column
+      reflects the total swing from baseline (Batch 04) to the final run
+      (Batch 06).
+    </p>
+
+    <div class="decomp">
+      <article class="d-card dataset">
+        <p class="d-title">Dataset uplift · 04 → 05</p>
+        <p class="d-step">Same YOLOv11n. New v2 dataset.</p>
+        <div class="d-row"><span>Test mAP@0.5</span><span class="v">+0.054</span></div>
+        <div class="d-bar"><i data-w="64"></i></div>
+        <div class="d-row"><span>Test mAP@0.5:0.95</span><span class="v">+0.077</span></div>
+        <div class="d-bar"><i data-w="91"></i></div>
+        <div class="d-row"><span>Test macro recall</span><span class="v">+0.119</span></div>
+        <div class="d-bar"><i data-w="100"></i></div>
+      </article>
+      <article class="d-card model">
+        <p class="d-title">Model uplift · 05 → 06</p>
+        <p class="d-step">Same v2 dataset. YOLOv11n → YOLOv11s.</p>
+        <div class="d-row"><span>Test mAP@0.5</span><span class="v">−0.008</span></div>
+        <div class="d-bar"><i data-w="10"></i></div>
+        <div class="d-row"><span>Test mAP@0.5:0.95</span><span class="v">+0.008</span></div>
+        <div class="d-bar"><i data-w="10"></i></div>
+        <div class="d-row"><span>Test macro recall</span><span class="v">−0.016</span></div>
+        <div class="d-bar"><i data-w="13"></i></div>
+      </article>
+      <article class="d-card combined">
+        <p class="d-title">Combined · 04 → 06</p>
+        <p class="d-step">Both changes stacked.</p>
+        <div class="d-row"><span>Test mAP@0.5</span><span class="v">+0.046</span></div>
+        <div class="d-bar"><i data-w="55"></i></div>
+        <div class="d-row"><span>Test mAP@0.5:0.95</span><span class="v">+0.085</span></div>
+        <div class="d-bar"><i data-w="100"></i></div>
+        <div class="d-row"><span>Test macro recall</span><span class="v">+0.103</span></div>
+        <div class="d-bar"><i data-w="87"></i></div>
+      </article>
+    </div>
+
+    <p style="margin-top: var(--s-6);">
+      <strong>~85–90 % of the cumulative improvement on every headline metric
+      came from the dataset uplift.</strong> The model uplift produces a small
+      lift only on the stricter-IoU metric — exactly where a higher-capacity
+      backbone is expected to help (fine-grained box regression).
+    </p>
+  </section>
+
+  <!-- ───────────────────── DISCUSSION ───────────────────── -->
+  <section class="sec reveal" id="discussion">
+    <div class="lead">07 · Discussion</div>
+    <h2>Why didn't YOLOv11s sweep the board?</h2>
+    <p>
+      YOLOv11s has 3.6× the parameters of YOLOv11n (9.4 M vs 2.6 M) and 3.3× the
+      GFLOPs (21.6 vs 6.5). Naively, a clean win across the board is expected.
+      Two reasons it doesn't materialise:
+    </p>
+    <div class="keys" style="margin-top: var(--s-4);">
+      <article class="key b05">
+        <h4>Batch 05 already saturated loose-IoU</h4>
+        <p>
+          Test mAP@0.5 hit 0.9876 and three of four classes were already at or
+          above 0.9855. There is essentially no headroom left on the 0.5 IoU
+          bucket — extra capacity has nowhere to go <em>except</em> tighter
+          localisation.
+        </p>
+      </article>
+      <article class="key b06">
+        <h4>800 images underfeeds a 9.4 M-param backbone</h4>
+        <p>
+          With the same recipe, a larger network is mildly susceptible to
+          over-fitting on a small, low-noise dataset. The <code>door_sign</code>
+          precision drop (1.0000 → 0.9697) and recall drop are consistent — the
+          model is producing a very small number of confident misclassifications
+          it didn't before.
+        </p>
+      </article>
+      <article class="key b04">
+        <h4>Generalisation-gap signature</h4>
+        <p>
+          Train-vs-val box-loss gap: <strong>04 = 0.33</strong> (overfit) →
+          <strong>05 = 0.11</strong> (great) → <strong>06 = 0.23</strong>
+          (re-widening). Batch 06 is starting to consume extra capacity on
+          training-set fit more than on generalisation — a regularisation knob
+          or more data is the natural next move.
+        </p>
+      </article>
+    </div>
+
+    <h3>Operational trade-offs</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th><span class="tag-b04">04 (n + v1)</span></th>
+            <th><span class="tag-b05">05 (n + v2)</span></th>
+            <th><span class="tag-b06">06 (s + v2)</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Parameter count</td><td>2.6 M</td><td>2.6 M</td><td><strong>9.4 M</strong></td></tr>
+          <tr><td>GFLOPs (640×640)</td><td>6.5</td><td>6.5</td><td><strong>21.6</strong></td></tr>
+          <tr><td>ONNX size (FP32, simplified)</td><td>~10.4 MB</td><td>~10.4 MB</td><td>~36 MB</td></tr>
+          <tr><td>Edge-device suitability</td><td>excellent</td><td>excellent</td><td>mid-tier (Jetson Nano, Pi 5 + Coral)</td></tr>
+          <tr><td>Headline mAP@0.5 (test)</td><td>0.9332</td><td><strong>0.9876</strong></td><td>0.9792</td></tr>
+          <tr><td>Strict mAP@0.5:0.95 (test)</td><td>0.7959</td><td>0.8728</td><td><strong>0.8808</strong></td></tr>
+          <tr><td>Best for</td><td>(deprecated baseline)</td><td><strong>shippable default</strong></td><td><strong>tight-localisation downstream tasks</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Remaining failure modes</h3>
+    <p>
+      <code>door_sign</code> remains the project's hardest class on the strict
+      IoU metric (mAP@0.5:0.95 ≈ 0.74 across all three batches) and is now the
+      only class to have lost both precision <em>and</em> recall in Batch 06.
+      Door signs are also the smallest in absolute pixel area in the test split.
+      Three independent levers worth trying in a future batch:
+    </p>
+    <ul style="color: var(--ink-2);">
+      <li><strong>Higher training resolution</strong> (<code>imgsz=896</code> or
+        <code>1024</code>) — direct fix for small-object localisation drift.</li>
+      <li><strong>Class-aware augmentation</strong> — more aggressive geometric
+        augmentation on <code>door_sign</code> (perspective, scale jitter) to
+        break the precision wobble Batch 06 introduced.</li>
+      <li><strong>Modest regulariser bump on YOLOv11s</strong> — weight decay
+        5e-4 → 1e-3 and/or label-smoothing 0.05 to absorb the extra capacity
+        without hurting the easier classes.</li>
+    </ul>
+  </section>
+
+  <!-- ───────────────────── CONCLUSION ───────────────────── -->
+  <section class="sec reveal" id="conclusion">
+    <div class="lead">08 · Conclusion</div>
+    <h2>Recommendation</h2>
+    <p>Across three single-variable steps:</p>
+    <div class="keys">
+      <article class="key b05">
+        <h4>04 → 05 · Dataset uplift</h4>
+        <p>Same model, new dataset. Large, broad gains across every metric: +5.4 pp mAP@0.5, +11.9 pp recall at unchanged precision.</p>
+      </article>
+      <article class="key b06">
+        <h4>05 → 06 · Model uplift</h4>
+        <p>Same dataset, larger model. Localisation-focused gain (+0.8 pp mAP@0.5:0.95, whiteboard mAP@0.5:0.95 +3.1 pp) traded against a small recall and door_sign precision regression.</p>
+      </article>
+      <article class="key b04">
+        <h4>Net guidance</h4>
+        <p>
+          Keep <span class="tag-b05">Batch 05</span> as the production default.
+          Use <span class="tag-b06">Batch 06</span> for downstream tasks that
+          need tighter boxes and are robust to a 1.5 pp recall hit.
+          Address the <code>door_sign</code> regression before any further
+          model-capacity experiments.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ───────────────────── APPENDIX ───────────────────── -->
+  <section class="sec reveal" id="appendix">
+    <div class="lead">Appendix</div>
+    <h2>Artefacts &amp; reproduction</h2>
+
+    <details class="col">
+      <summary>A — Artefact locations <span class="ch">▶</span></summary>
+      <div class="inner">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Asset</th><th>Batch 04</th><th>Batch 05</th><th>Batch 06</th></tr></thead>
+            <tbody>
+              <tr><td>Trained weights (.pt)</td>
+                <td><code>model_outputs/04_…/weights/best.pt</code></td>
+                <td><code>05_model_weights/best.pt</code> (gitignored)</td>
+                <td><code>06_model_weights/best.pt</code> (gitignored)</td></tr>
+              <tr><td>ONNX export</td>
+                <td><code>model_outputs/04_…/weights/best.onnx</code></td>
+                <td><code>05_model_weights/best.onnx</code></td>
+                <td><code>06_model_weights/best.onnx</code></td></tr>
+              <tr><td>Training summary</td>
+                <td><code>04_…/docs/nb04_model_training/training_summary.json</code></td>
+                <td><code>05_…/docs/nb04_model_training/training_summary.json</code></td>
+                <td><code>06_…/docs/nb04_model_training/training_summary.json</code></td></tr>
+              <tr><td>Test metrics</td>
+                <td><code>04_…/docs/nb05_model_evaluation/overall_metrics.json</code></td>
+                <td><code>05_…/docs/nb05_model_evaluation/overall_metrics.json</code></td>
+                <td><code>06_…/docs/nb05_model_evaluation/overall_metrics.json</code></td></tr>
+              <tr><td>Per-class metrics</td>
+                <td><code>04_…/docs/nb05_model_evaluation/per_class_metrics.csv</code></td>
+                <td><code>05_…/docs/nb05_model_evaluation/per_class_metrics.csv</code></td>
+                <td><code>06_…/docs/nb05_model_evaluation/per_class_metrics.csv</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+
+    <details class="col">
+      <summary>B — Reproduction <span class="ch">▶</span></summary>
+      <div class="inner">
+<pre><code># All three runs are reproducible from the notebooks in notebooks/ using
+# the dataset YAML at data/dataset/data.yaml. Seed = 42, deterministic = true.
+# Switch the `model=` line in nb04 between yolo11n.pt and yolo11s.pt to
+# reproduce Batch 05 vs Batch 06; rebuild the dataset for Batch 04 vs 05.
+jupyter execute notebooks/04_model_training.ipynb
+jupyter execute notebooks/05_model_evaluation.ipynb</code></pre>
+      </div>
+    </details>
+
+    <p style="margin-top: var(--s-6);">
+      Markdown twin of this report:
+      <a href="technical_report.md">technical_report.md</a> ·
+      Prior two-way comparison:
+      <a href="../batch04_vs_batch05/technical_report.html">Batch 04 vs Batch 05</a> ·
+      <a href="../index.html">← Back to project home</a>
+    </p>
+  </section>
+
+  <footer>
+    <span>© 2026 · Campus Object Detection · Three-way comparative analysis</span>
+    <span class="right">
+      <span class="pill b04"><span class="dot"></span>04 · YOLOv11n · v1</span>
+      <span class="pill b05"><span class="dot"></span>05 · YOLOv11n · v2</span>
+      <span class="pill b06"><span class="dot"></span>06 · YOLOv11s · v2</span>
+    </span>
+  </footer>
+</div>
+
+<script>
+  // Scroll progress
+  (function () {
+    const bar = document.getElementById('progress');
+    const onScroll = () => {
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      const p = max > 0 ? h.scrollTop / max : 0;
+      bar.style.setProperty('--p', p);
+    };
+    document.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+
+  // Reveal on intersection
+  (function () {
+    const els = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) {
+      els.forEach(e => e.classList.add('visible'));
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          io.unobserve(e.target);
+        }
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+    els.forEach(e => io.observe(e));
+  })();
+
+  // Animate decomposition bars when in view
+  (function () {
+    const bars = document.querySelectorAll('.decomp .d-bar > i');
+    if (!('IntersectionObserver' in window)) {
+      bars.forEach(b => b.style.width = (b.dataset.w || 0) + '%');
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const i = e.target;
+          requestAnimationFrame(() => { i.style.width = (i.dataset.w || 0) + '%'; });
+          io.unobserve(i);
+        }
+      });
+    }, { threshold: 0.3 });
+    bars.forEach(b => io.observe(b));
+  })();
+</script>
+</body>
+</html>
